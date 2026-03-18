@@ -1,0 +1,37 @@
+import { auth } from '@/lib/auth'
+import { redirect } from 'next/navigation'
+import Link from 'next/link'
+
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const session = await auth()
+
+  if (!session || session.user.role !== 'ADMIN') {
+    redirect('/dashboard')
+  }
+
+  return (
+    <div className="min-h-screen bg-stone-50 bg-corrugated">
+      <header className="bg-stone-900 text-white px-6 py-4 flex items-center justify-between border-b-2 border-orange-500">
+        <div className="flex items-center gap-3">
+          <div className="h-6 w-6 bg-orange-500 flex items-center justify-center rotate-45">
+            <span className="text-white font-black text-[10px] -rotate-45">BR</span>
+          </div>
+          <Link href="/" className="font-barlow font-black text-white uppercase tracking-wide text-base ml-1">
+            BetterRoofing
+          </Link>
+          <span className="text-stone-600 font-bold">/</span>
+          <span className="text-xs font-black uppercase tracking-widest text-orange-400 border border-orange-500/40 px-2 py-0.5">
+            Admin
+          </span>
+        </div>
+        <Link
+          href="/dashboard"
+          className="text-xs font-bold uppercase tracking-wide text-stone-400 hover:text-white transition-colors"
+        >
+          ← Dashboard
+        </Link>
+      </header>
+      <main className="p-8">{children}</main>
+    </div>
+  )
+}

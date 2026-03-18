@@ -1,0 +1,57 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
+import { z } from 'zod'
+
+const settingsSchema = z.object({
+  notificationEmail: z.union([z.string().email(), z.literal('')]).optional(),
+  webhookUrl: z.union([z.string().url(), z.literal('')]).optional(),
+  bookingUrl: z.union([z.string().url(), z.literal('')]).optional(),
+  outOfAreaBehavior: z.enum(['GATE', 'FLAG']).optional(),
+})
+
+export async function GET() {
+  const session = await auth()
+  if (!session?.user?.contractorId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const contractor = await prisma.contractor.findUnique({
+    where: { id: session.user.contractorId },
+    select: { notificationEmail: true, webhookUrl: true, bookingUrl: true, outOfAreaBehavior: true },
+  })
+
+  return NextResponse.json(contractor ?? {
+    notificationEmail: null,
+    webhookUrl: null,
+    bookingUrl: null,
+    outOfAreaBehavior: 'FLAG',
+  })
+}
+
+export async function PUT(req: NextRequest) {
+  const session = await auth()
+  if (!session?.user?.contractorId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const body = await req.json()
+  const parsed = settingsSchema.safeParse(body)
+
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 })
+  }
+
+  const contractor = await prisma.contractor.update({
+    where: { id: session.user.contractorId },
+    data: {
+      notificationEmail: parsed.data.notificationEmail ?? undefined,
+      webhookUrl: parsed.data.webhookUrl ?? undefined,
+      bookingUrl: parsed.data.bookingUrl ?? undefined,
+      outOfAreaBehavior: parsed.data.outOfAreaBehavior ?? undefined,
+    },
+    select: { notificationEmail: true, webhookUrl: true, bookingUrl: true, outOfAreaBehavior: true },
+  })
+
+  return NextResponse.json(contractor)
+}

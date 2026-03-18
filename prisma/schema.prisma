@@ -1,0 +1,199 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  CONTRACTOR
+}
+
+enum Plan {
+  STARTER
+  PRO
+}
+
+enum OutOfAreaBehavior {
+  GATE  // Block the lead — show a dead-end screen
+  FLAG  // Allow the lead through, mark as out of area
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          Role      @default(CONTRACTOR)
+  contractorId  String?
+
+  // Login rate limiting
+  failedLoginAttempts Int       @default(0)
+  loginLockedUntil    DateTime?
+
+  accounts   Account[]
+  sessions   Session[]
+  contractor Contractor? @relation(fields: [contractorId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Contractor {
+  id                String            @id @default(cuid())
+  companyName       String
+  website           String?
+  phone             String?
+  notificationEmail String?
+  webhookUrl        String?
+  bookingUrl        String?
+  outOfAreaBehavior OutOfAreaBehavior @default(FLAG)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  users           User[]
+  leads           Lead[]
+  locations       Location[]
+  pricingSettings PricingSettings?
+  subscription    Subscription?
+  weeklyReports   WeeklyReport[]
+}
+
+model Location {
+  id                 String     @id @default(cuid())
+  contractorId       String
+  name               String
+  address            String
+  lat                Float
+  lng                Float
+  serviceRadiusMiles Float      @default(50)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  contractor Contractor @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  leads      Lead[]
+
+  @@index([contractorId])
+}
+
+model Lead {
+  id           String   @id @default(cuid())
+  contractorId String
+  locationId   String?
+  name         String
+  email        String
+  phone        String?
+  address      String
+  lat          Float?
+  lng          Float?
+  // Qualification
+  isHomeowner     String   @default("yes")         // yes | no | renter
+  projectType     String   @default("replacement") // replacement | repair
+  insuranceClaim  String   @default("no")          // yes | no | unsure
+  urgency         String   @default("soon")        // emergency | soon | browsing
+  leadScore    Int      @default(5)
+  outOfArea    Boolean  @default(false)
+  // Estimate
+  materialType  String  @default("asphalt")
+  roofSlope     String  @default("medium")  // flat | low | medium | steep
+  homeSqft      Int?
+  roofSquares   Float
+  estimateLow   Float
+  estimateHigh  Float
+  // AI
+  aiEmailDraft  String? @db.Text
+  aiSmsDraft    String?
+  aiLeadBrief   String? @db.Text
+  // Pipeline
+  status        String  @default("new") // new | contacted | quoted | won | lost
+  createdAt     DateTime @default(now())
+
+  contractor Contractor @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  location   Location?  @relation(fields: [locationId], references: [id])
+
+  @@index([contractorId])
+  @@index([contractorId, createdAt])
+}
+
+model WeeklyReport {
+  id           String   @id @default(cuid())
+  contractorId String
+  weekOf       DateTime
+  report       String   @db.Text
+  createdAt    DateTime @default(now())
+
+  contractor Contractor @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+
+  @@index([contractorId])
+}
+
+model PricingSettings {
+  id                    String  @id @default(cuid())
+  contractorId          String  @unique
+  pricePerSquare        Float   @default(350)
+  pricePerSquareAsphalt Float   @default(350)
+  pricePerSquareMetal   Float   @default(600)
+  pricePerSquareTile    Float   @default(500)
+  pricePerSquareFlat    Float   @default(450)
+  wasteFactor           Float   @default(1.10)
+  tearOffCost           Float   @default(500)
+  // Which material types the contractor offers
+  offersAsphalt         Boolean @default(true)
+  offersMetal           Boolean @default(true)
+  offersTile            Boolean @default(true)
+  offersFlat            Boolean @default(false)
+
+  contractor Contractor @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id                   String    @id @default(cuid())
+  contractorId         String    @unique
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  plan                 Plan      @default(STARTER)
+  status               String    @default("inactive")
+  currentPeriodEnd     DateTime?
+  trialEndsAt          DateTime?
+
+  contractor Contractor @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+}

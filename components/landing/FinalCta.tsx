@@ -1,0 +1,55 @@
+import Link from 'next/link'
+import { ArrowRight, HardHat } from 'lucide-react'
+
+export function FinalCta() {
+  return (
+    <section className="relative bg-stone-900 bg-asphalt overflow-hidden">
+      {/* Hazard stripe top */}
+      <div className="h-2 bg-hazard border-b border-orange-600/30" style={{
+        background: 'repeating-linear-gradient(-45deg, #ea580c 0px, #ea580c 12px, #1c1917 12px, #1c1917 24px)'
+      }} />
+
+      <div className="container max-w-5xl mx-auto px-4 py-24">
+        <div className="grid md:grid-cols-[1fr_auto] items-center gap-10">
+
+          {/* Copy */}
+          <div>
+            <div className="inline-flex items-center gap-2 bg-orange-500/20 border border-orange-500/40 px-4 py-2 mb-6">
+              <HardHat className="h-4 w-4 text-orange-400" />
+              <span className="text-orange-400 text-sm font-black uppercase tracking-widest">Ready to get on the roof?</span>
+            </div>
+            <h2 className="font-barlow font-black text-5xl md:text-7xl text-white uppercase leading-none mb-4">
+              Your Next 10 Leads<br />
+              Are Sitting On<br />
+              Your Website<br />
+              <span className="text-orange-400">Right Now.</span>
+            </h2>
+            <p className="text-stone-400 text-lg max-w-md">
+              Set up in 5 minutes. No $2,000 setup fee.
+              Just more qualified roofing leads.
+            </p>
+          </div>
+
+          {/* CTA */}
+          <div className="flex-shrink-0">
+            <Link href="/signup" className="btn btn-primary px-10 py-5 text-base">
+              Start Free Trial
+              <ArrowRight className="h-5 w-5" />
+            </Link>
+            <div className="mt-5 space-y-1.5">
+              {['14-day free trial', 'No charge until day 15', 'Live in 5 minutes', 'Cancel anytime'].map((t) => (
+                <p key={t} className="text-xs text-stone-500 font-semibold uppercase tracking-widest">✓ {t}</p>
+              ))}
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      {/* Hazard stripe bottom */}
+      <div className="h-2" style={{
+        background: 'repeating-linear-gradient(-45deg, #ea580c 0px, #ea580c 12px, #1c1917 12px, #1c1917 24px)'
+      }} />
+    </section>
+  )
+}
