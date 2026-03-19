@@ -7,7 +7,7 @@ export default async function LocationsPage() {
   const session = await auth()
   if (!session?.user?.contractorId) redirect('/login')
 
-  const [locations, contractor] = await Promise.all([
+  const [locations, contractor, subscription] = await Promise.all([
     prisma.location.findMany({
       where: { contractorId: session.user.contractorId },
       orderBy: { createdAt: 'asc' },
@@ -16,12 +16,19 @@ export default async function LocationsPage() {
       where: { id: session.user.contractorId },
       select: { outOfAreaBehavior: true },
     }),
+    prisma.subscription.findUnique({
+      where: { contractorId: session.user.contractorId },
+      select: { plan: true },
+    }),
   ])
+
+  const isStarter = subscription?.plan === 'STARTER'
 
   return (
     <LocationsClient
       initialLocations={locations}
       outOfAreaBehavior={contractor?.outOfAreaBehavior ?? 'FLAG'}
+      isStarter={isStarter}
     />
   )
 }

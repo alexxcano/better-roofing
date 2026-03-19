@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 const testimonials = [
   {
     quote:
@@ -14,7 +16,7 @@ const testimonials = [
     name: 'Jennifer R.',
     company: 'Premier Roofing Co.',
     location: 'Denver, CO',
-    result: 'Close rate up significantly',
+    result: 'Close rate is up',
     stars: 5,
   },
   {
@@ -74,6 +76,12 @@ export function Testimonials() {
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="mt-10 text-center">
+          <Link href="/signup" className="btn btn-primary px-8 py-4 text-base">
+            Join them — Start Free →
+          </Link>
         </div>
 
       </div>

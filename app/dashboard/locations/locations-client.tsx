@@ -16,6 +16,7 @@ interface Location {
 interface LocationsClientProps {
   initialLocations: Location[]
   outOfAreaBehavior: 'GATE' | 'FLAG'
+  isStarter: boolean
 }
 
 declare global {
@@ -215,7 +216,7 @@ function LocationRow({
   )
 }
 
-export function LocationsClient({ initialLocations, outOfAreaBehavior: initialBehavior }: LocationsClientProps) {
+export function LocationsClient({ initialLocations, outOfAreaBehavior: initialBehavior, isStarter }: LocationsClientProps) {
   const { toast } = useToast()
   const [locations, setLocations] = useState<Location[]>(initialLocations)
   const [behavior, setBehavior] = useState<'GATE' | 'FLAG'>(initialBehavior)
@@ -337,10 +338,16 @@ export function LocationsClient({ initialLocations, outOfAreaBehavior: initialBe
                 : `${locations.length} location${locations.length !== 1 ? 's' : ''} configured`}
             </p>
           </div>
-          <button onClick={() => setShowAdd(true)} className="btn btn-primary px-4 py-1.5">
-            <Plus className="h-3.5 w-3.5" />
-            Add Location
-          </button>
+          {isStarter && locations.length >= 1 ? (
+            <a href="/dashboard/billing" className="btn btn-ghost px-4 py-1.5 text-xs">
+              Upgrade to Pro for multiple locations →
+            </a>
+          ) : (
+            <button onClick={() => setShowAdd(true)} className="btn btn-primary px-4 py-1.5">
+              <Plus className="h-3.5 w-3.5" />
+              Add Location
+            </button>
+          )}
         </div>
 
         {/* Add form */}

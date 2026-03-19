@@ -19,6 +19,7 @@ const ROWS: Row[] = [
   { label: 'Lead scoring & qualification',    starter: true,    pro: true },
   { label: 'Lead pipeline (New→Quoted→Won)',  starter: true,    pro: true },
   { label: 'Service area filtering',          starter: true,    pro: true },
+  { label: 'Locations',                       starter: '1',     pro: 'Unlimited', differentiator: true },
   { label: 'Email notifications',             starter: true,    pro: true },
   { label: 'CSV export',                      starter: true,    pro: true },
   // Pro AI features

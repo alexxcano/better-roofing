@@ -69,15 +69,15 @@ export default async function DashboardPage() {
             </p>
             <p className="text-sm text-stone-600 font-semibold">
               {daysLeftInTrial === 0
-                ? 'Add a card now to avoid losing access.'
-                : 'Add a card to keep your account active — no charge until your trial ends.'}
+                ? 'Your trial expires today. Subscribe to keep access.'
+                : 'You have full Pro access during your trial. Subscribe before it ends to keep all features.'}
             </p>
           </div>
           <Link
             href="/dashboard/billing"
             className="btn btn-primary px-5 py-2 flex-shrink-0 whitespace-nowrap"
           >
-            Choose a Plan →
+            Subscribe →
           </Link>
         </div>
       )}

@@ -56,7 +56,7 @@ export default function TermsPage() {
           <Section title="Subscriptions & Billing">
             <ul className="list-disc pl-5 space-y-1">
               <li>Plans are billed monthly or annually as selected at signup.</li>
-              <li>A 14-day free trial is available — a credit card is required to start, but you will not be charged until the trial period ends.</li>
+              <li>A 14-day free trial is available — no credit card required. At the end of the trial, a subscription is required to continue using the Service.</li>
               <li>Subscriptions renew automatically. You can cancel anytime from the billing dashboard.</li>
               <li>Cancellations take effect at the end of the current billing period — no partial refunds.</li>
               <li>We reserve the right to change pricing with 30 days notice to active subscribers.</li>

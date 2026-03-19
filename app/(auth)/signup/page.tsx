@@ -52,7 +52,7 @@ export default function SignupPage() {
       toast({ title: 'Auto-login failed', description: 'Please log in manually', variant: 'destructive' })
       router.push('/login')
     } else {
-      router.push('/dashboard/billing')
+      router.push('/dashboard')
     }
   }
 
@@ -68,7 +68,7 @@ export default function SignupPage() {
         {/* Google */}
         <button
           type="button"
-          onClick={() => signIn('google', { callbackUrl: '/dashboard/billing' })}
+          onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
           className="btn btn-ghost w-full py-2.5"
         >
           <svg className="h-4 w-4" viewBox="0 0 24 24">
@@ -145,7 +145,7 @@ export default function SignupPage() {
           </button>
 
           <p className="text-[11px] text-stone-400 font-semibold uppercase tracking-wide text-center">
-            14-day free trial · No charge until day 15
+            14-day free trial · No credit card required
           </p>
         </form>
       </div>

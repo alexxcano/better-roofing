@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
         webhookUrl: true,
         companyName: true,
         outOfAreaBehavior: true,
-        locations: { select: { id: true, lat: true, lng: true, serviceRadiusMiles: true } },
+        locations: { select: { id: true, lat: true, lng: true, serviceRadiusMiles: true }, orderBy: { createdAt: 'asc' } },
       },
     })
 
@@ -75,17 +75,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Contractor not found' }, { status: 404 })
     }
 
+    // Enforce location limit per plan (Starter = 1 location only)
+    const activeLocations = subscription.plan === 'STARTER'
+      ? contractor.locations.slice(0, 1)
+      : contractor.locations
+
     // Service area check (only if locations configured and lat/lng provided)
     let outOfArea = false
     let nearestLocationId: string | null = null
 
-    if (contractor.locations.length > 0 && lat != null && lng != null) {
-      const areaResult = checkServiceArea(lat, lng, contractor.locations)
+    if (activeLocations.length > 0 && lat != null && lng != null) {
+      const areaResult = checkServiceArea(lat, lng, activeLocations)
       outOfArea = !areaResult.inArea
       nearestLocationId = areaResult.nearestLocationId
 
       // Hard gate: reject out-of-area leads if contractor chose GATE behavior
-      if (outOfArea && contractor.outOfAreaBehavior === 'GATE') {
+      if (outOfArea && contractor.outOfAreaBehavior === 'GATE' && activeLocations.length > 0) {
         return NextResponse.json(
           { error: 'out_of_area', message: 'This address is outside our service area.' },
           { status: 422 }

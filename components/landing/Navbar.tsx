@@ -12,7 +12,7 @@ export function Navbar() {
 
         <div className="hidden md:flex items-center gap-8">
           {[
-            { href: '#pain', label: 'Why It Works' },
+            { href: '#pain', label: 'How It Works' },
             { href: '#features', label: 'Features' },
             { href: '#pricing', label: 'Pricing' },
             { href: '#testimonials', label: 'Results' },
@@ -32,7 +32,7 @@ export function Navbar() {
             Log In
           </Link>
           <Link href="/signup" className="btn btn-primary px-5 py-2">
-            Get Started →
+            Try Free →
           </Link>
         </div>
       </div>

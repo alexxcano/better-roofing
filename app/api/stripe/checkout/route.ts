@@ -49,23 +49,14 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  // Calculate remaining trial days from DB trial (min 0)
-  const trialDaysRemaining = subscription?.trialEndsAt
-    ? Math.max(0, Math.ceil((new Date(subscription.trialEndsAt).getTime() - Date.now()) / 86400000))
-    : 0
-
   const checkoutSession = await stripe.checkout.sessions.create({
     customer: customerId,
     mode: 'subscription',
     payment_method_types: ['card'],
-    payment_method_collection: 'always',
     line_items: [{ price: priceId, quantity: 1 }],
-    ...(trialDaysRemaining > 0 && {
-      subscription_data: {
-        trial_period_days: trialDaysRemaining,
-        metadata: { contractorId: session.user.contractorId },
-      },
-    }),
+    subscription_data: {
+      metadata: { contractorId: session.user.contractorId },
+    },
     success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/billing?success=true`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/billing`,
     metadata: {

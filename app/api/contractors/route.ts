@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
       await tx.subscription.create({
         data: {
           contractorId: contractor.id,
-          plan: 'STARTER',
+          plan: 'PRO',
           status: 'trialing',
           trialEndsAt,
         },

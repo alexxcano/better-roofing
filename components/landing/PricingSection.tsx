@@ -47,14 +47,14 @@ export function PricingSection() {
               disabled={loading === plan}
               className={`btn w-full py-3 ${plan === 'PRO' ? 'btn-primary' : 'btn-secondary'}`}
             >
-              {loading === plan ? 'Loading...' : 'Start Free Trial'}
+              {loading === plan ? 'Loading...' : plan === 'PRO' ? 'Start Free Trial — Full Pro Access' : 'Start Free Trial'}
             </button>
           )}
         />
 
         <p className="text-center text-sm text-stone-400 font-semibold mt-8">
           Need a custom plan for a large franchise or enterprise?{' '}
-          <a href="mailto:hello@betterroofing.io" className="text-orange-600 hover:text-orange-700 underline">
+          <a href="mailto:hello@betterroofing.co" className="text-orange-600 hover:text-orange-700 underline">
             Contact us
           </a>
         </p>

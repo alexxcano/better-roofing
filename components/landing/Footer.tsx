@@ -48,31 +48,29 @@ export function Footer() {
             <p className="text-xs text-stone-600 font-black uppercase tracking-widest mb-4">Company</p>
             <ul className="space-y-2.5">
               <li><Link href="/login" className="text-sm text-stone-500 hover:text-stone-300 font-medium transition-colors">Log In</Link></li>
-              <li><Link href="/signup" className="text-sm text-stone-500 hover:text-stone-300 font-medium transition-colors">Sign Up</Link></li>
-              <li><Link href="/docs" className="text-sm text-stone-500 hover:text-stone-300 font-medium transition-colors">Docs</Link></li>
+              <li>
+                <Link href="/signup" className="text-sm text-orange-400 hover:text-orange-300 font-bold transition-colors">
+                  Sign Up Free →
+                </Link>
+              </li>
               <li><a href="mailto:hello@betterroofing.co" className="text-sm text-stone-500 hover:text-stone-300 font-medium transition-colors">Contact</a></li>
             </ul>
           </div>
 
-          {/* Compare */}
+          {/* Resources */}
           <div>
-            <p className="text-xs text-stone-600 font-black uppercase tracking-widest mb-4">vs. Competition</p>
-            <ul className="space-y-2">
-              <li className="text-xs text-stone-500 font-semibold">BetterRoofing: $49/mo, $0 setup</li>
-              <li className="text-xs text-stone-600">Roofle: $350/mo, $2,000 setup</li>
-              <li className="text-xs text-stone-600">Demand IQ: $300+/mo</li>
-              <li className="mt-3">
-                <Link href="/signup" className="text-xs text-orange-400 hover:text-orange-300 font-bold uppercase tracking-widest underline transition-colors">
-                  Start free → 14-day trial
-                </Link>
-              </li>
+            <p className="text-xs text-stone-600 font-black uppercase tracking-widest mb-4">Resources</p>
+            <ul className="space-y-2.5">
+              <li><Link href="/docs" className="text-sm text-stone-500 hover:text-stone-300 font-medium transition-colors">Docs</Link></li>
+              <li><Link href="/privacy" className="text-sm text-stone-500 hover:text-stone-300 font-medium transition-colors">Privacy Policy</Link></li>
+              <li><Link href="/terms" className="text-sm text-stone-500 hover:text-stone-300 font-medium transition-colors">Terms of Service</Link></li>
             </ul>
           </div>
         </div>
 
         <div className="border-t border-stone-800 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs text-stone-600 font-semibold uppercase tracking-widest">
-            &copy; {new Date().getFullYear()} Better Roofing. All rights reserved.
+            &copy; {new Date().getFullYear()} BetterRoofing. All rights reserved.
           </p>
           <div className="flex gap-6">
             <Link href="/privacy" className="text-xs text-stone-600 hover:text-stone-400 font-semibold uppercase tracking-widest transition-colors">Privacy Policy</Link>

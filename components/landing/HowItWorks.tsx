@@ -16,7 +16,7 @@ const steps = [
   {
     number: '03',
     time: 'Ongoing',
-    title: 'Wake up to qualified leads',
+    title: 'Close Jobs While You Sleep',
     description:
       'Every estimate lands in your dashboard scored and ready to act on. Hot leads at the top — with AI-written follow-up emails and SMS drafts already prepared. Review, hit send, and you\'re first to respond.',
   },

@@ -16,7 +16,7 @@ export function FinalCta() {
           <div>
             <div className="inline-flex items-center gap-2 bg-orange-500/20 border border-orange-500/40 px-4 py-2 mb-6">
               <HardHat className="h-4 w-4 text-orange-400" />
-              <span className="text-orange-400 text-sm font-black uppercase tracking-widest">Ready to get on the roof?</span>
+              <span className="text-orange-400 text-sm font-black uppercase tracking-widest">Every lead you miss is a job your competitor wins</span>
             </div>
             <h2 className="font-barlow font-black text-5xl md:text-7xl text-white uppercase leading-none mb-4">
               Your Next 10 Leads<br />
@@ -25,19 +25,18 @@ export function FinalCta() {
               <span className="text-orange-400">Right Now.</span>
             </h2>
             <p className="text-stone-400 text-lg max-w-md">
-              Set up in 5 minutes. No $2,000 setup fee.
-              Just more qualified roofing leads.
+              Every night your site goes without this, a homeowner picks someone else.
             </p>
           </div>
 
           {/* CTA */}
           <div className="flex-shrink-0">
             <Link href="/signup" className="btn btn-primary px-10 py-5 text-base">
-              Start Free Trial
+              Start Capturing Leads Free
               <ArrowRight className="h-5 w-5" />
             </Link>
             <div className="mt-5 space-y-1.5">
-              {['14-day free trial', 'No charge until day 15', 'Live in 5 minutes', 'Cancel anytime'].map((t) => (
+              {['Live in 5 minutes', '14-day free trial', 'No credit card required', 'Cancel anytime'].map((t) => (
                 <p key={t} className="text-xs text-stone-500 font-semibold uppercase tracking-widest">✓ {t}</p>
               ))}
             </div>

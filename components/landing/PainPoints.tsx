@@ -19,7 +19,7 @@ const pains = [
   },
   {
     number: '04',
-    before: 'You call back 18 hours later. They already signed with whoever responded first — armed with AI-written outreach, not a cold call.',
+    before: 'You call back 18 hours later. The homeowner already signed with the contractor who responded first. You never had a chance.',
     tag: 'Slow Response',
     tagColor: 'bg-amber-100 text-amber-700 border-amber-200',
   },

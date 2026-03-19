@@ -12,7 +12,7 @@ export function Hero() {
             <div className="inline-flex items-center gap-2 bg-orange-100 border border-orange-300 px-4 py-2 mb-8">
               <HardHat className="h-4 w-4 text-orange-600" />
               <span className="text-orange-700 text-sm font-bold uppercase tracking-wide">
-                Roofle & Demand IQ alternative — AI features they don&apos;t have
+                The #1 instant quote tool built for roofers
               </span>
             </div>
 
@@ -23,21 +23,21 @@ export function Hero() {
             </h1>
 
             <p className="text-stone-600 text-xl leading-relaxed mb-10 max-w-md">
-              Embed a 60-second quote widget on your site. Every lead gets scored, analyzed by AI, and arrives with a personalized follow-up already written — starting at $49/mo.
+              Add a 60-second quote widget to your site. Homeowners get an instant estimate — you get a scored, AI-briefed lead with a follow-up already written.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
               <Link href="/signup" className="btn btn-primary px-8 py-4 text-base">
-                Start Free Trial
+                Start Capturing Leads Free
                 <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link href="#how-it-works" className="btn btn-secondary px-8 py-4 text-base">
+              <Link href="#how-it-works" className="btn btn-ghost px-8 py-4 text-base">
                 See How It Works
               </Link>
             </div>
 
             <p className="text-sm text-stone-400 uppercase tracking-wider font-semibold">
-              14-day free trial · Card required · No charge until day 15
+              14-day free trial · No credit card required · Cancel anytime
             </p>
           </div>
 
