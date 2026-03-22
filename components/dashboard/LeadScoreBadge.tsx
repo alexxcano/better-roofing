@@ -1,23 +1,27 @@
-import { calculateLeadScore } from '@/lib/leadScore'
 import { cn } from '@/lib/utils'
 
 interface LeadScoreBadgeProps {
-  isHomeowner: string
-  projectType: string
-  urgency: string
+  score: number
   outOfArea?: boolean
   showScore?: boolean
 }
 
 const TIER_STYLES = {
-  hot: 'bg-red-100 text-red-700 border-red-200',
+  hot:  'bg-red-100 text-red-700 border-red-200',
   warm: 'bg-orange-100 text-orange-700 border-orange-200',
   cool: 'bg-blue-100 text-blue-700 border-blue-200',
   cold: 'bg-slate-100 text-slate-600 border-slate-200',
 }
 
-export function LeadScoreBadge({ isHomeowner, projectType, urgency, outOfArea = false, showScore = false }: LeadScoreBadgeProps) {
-  const { score, tier, label, emoji } = calculateLeadScore({ isHomeowner, projectType, urgency, outOfArea })
+function scoreTier(score: number): { tier: keyof typeof TIER_STYLES; label: string; emoji: string } {
+  if (score >= 8) return { tier: 'hot',  label: 'Hot',  emoji: '🔥' }
+  if (score >= 5) return { tier: 'warm', label: 'Warm', emoji: '⚡' }
+  if (score >= 3) return { tier: 'cool', label: 'Cool', emoji: '👍' }
+  return               { tier: 'cold', label: 'Cold', emoji: '🧊' }
+}
+
+export function LeadScoreBadge({ score, outOfArea = false, showScore = false }: LeadScoreBadgeProps) {
+  const { tier, label, emoji } = scoreTier(outOfArea ? Math.min(score, 4) : score)
 
   if (showScore) {
     return (

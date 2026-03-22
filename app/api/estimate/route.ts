@@ -8,6 +8,7 @@ const estimateSchema = z.object({
   homeSqft: z.number().positive().max(50000),
   materialType: z.enum(['asphalt', 'metal', 'tile', 'flat']).default('asphalt'),
   slope: z.enum(['flat', 'low', 'medium', 'steep']).default('medium'),
+  solarMeasured: z.boolean().default(false),
 })
 
 export async function POST(req: NextRequest) {
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
     }
 
-    const { contractorId, homeSqft, materialType, slope } = parsed.data
+    const { contractorId, homeSqft, materialType, slope, solarMeasured } = parsed.data
 
     const pricing = await prisma.pricingSettings.findUnique({
       where: { contractorId },
@@ -41,7 +42,8 @@ export async function POST(req: NextRequest) {
       pricePerSquare: priceMap[materialType] ?? pricing.pricePerSquareAsphalt,
       wasteFactor: pricing.wasteFactor,
       tearOffCost: pricing.tearOffCost,
-      slope,
+      // Solar API already returns actual surface area, so no slope factor needed
+      slope: solarMeasured ? 'flat' : slope,
     })
 
     return NextResponse.json(result)

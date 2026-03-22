@@ -51,8 +51,7 @@ async function processContractor(
     prisma.lead.findMany({
       where: { contractorId: contractor.id, createdAt: { gte: weekStart, lt: weekEnd } },
       select: {
-        urgency: true,
-        projectType: true,
+        insuranceClaim: true,
         materialType: true,
         leadScore: true,
         outOfArea: true,
@@ -72,11 +71,7 @@ async function processContractor(
   const stats = {
     newLeads: weekLeads.length,
     hotLeads: weekLeads.filter((l) => l.leadScore >= 8).length,
-    emergencyLeads: weekLeads.filter((l) => l.urgency === 'emergency').length,
-    soonLeads: weekLeads.filter((l) => l.urgency === 'soon').length,
-    browsingLeads: weekLeads.filter((l) => l.urgency === 'browsing').length,
-    replacements: weekLeads.filter((l) => l.projectType === 'replacement').length,
-    repairs: weekLeads.filter((l) => l.projectType === 'repair').length,
+    insuranceLeads: weekLeads.filter((l) => l.insuranceClaim === 'yes').length,
     outOfAreaLeads: weekLeads.filter((l) => l.outOfArea).length,
     avgEstimate: weekLeads.length
       ? Math.round(weekLeads.reduce((s, l) => s + (l.estimateLow + l.estimateHigh) / 2, 0) / weekLeads.length)

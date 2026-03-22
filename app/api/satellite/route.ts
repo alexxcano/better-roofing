@@ -5,6 +5,8 @@ export async function GET(req: NextRequest) {
   const lat = searchParams.get('lat')
   const lng = searchParams.get('lng')
   const zoom = searchParams.get('zoom') ?? '19'
+  const size = searchParams.get('size') ?? '640x480'
+  const noMarker = searchParams.get('nomarker') === '1'
 
   if (!lat || !lng) {
     return NextResponse.json({ error: 'Missing lat/lng' }, { status: 400 })
@@ -16,7 +18,8 @@ export async function GET(req: NextRequest) {
   }
 
   const marker = `pin-s+f97316(${lng},${lat})`
-  const url = `https://api.mapbox.com/styles/v1/mapbox/satellite-v9/static/${marker}/${lng},${lat},${zoom},0/640x280@2x?access_token=${token}`
+  const staticPart = noMarker ? '' : `${marker}/`
+  const url = `https://api.mapbox.com/styles/v1/mapbox/satellite-v9/static/${staticPart}${lng},${lat},${zoom},0/${size}@2x?access_token=${token}`
 
   const upstream = await fetch(url, {
     next: { revalidate: 60 * 60 * 24 * 30 }, // Next.js server cache: 30 days

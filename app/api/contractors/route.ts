@@ -46,9 +46,9 @@ export async function POST(req: NextRequest) {
       await tx.pricingSettings.create({
         data: {
           contractorId: contractor.id,
-          pricePerSquare: 350,
-          wasteFactor: 1.10,
-          tearOffCost: 500,
+          pricePerSquare: 425,
+          wasteFactor: 1.12,
+          tearOffCost: 1000,
         },
       })
 

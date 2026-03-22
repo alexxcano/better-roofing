@@ -4,11 +4,7 @@ interface LeadStats {
   // This week
   newLeads: number
   hotLeads: number       // score >= 8
-  emergencyLeads: number
-  soonLeads: number
-  browsingLeads: number
-  replacements: number
-  repairs: number
+  insuranceLeads: number // insuranceClaim === 'yes'
   outOfAreaLeads: number
   avgEstimate: number
   totalEstimateValue: number
@@ -37,8 +33,7 @@ export async function generateWeeklyReport(
 Week of ${weekStr}:
 - New leads this week: ${stats.newLeads}
 - Hot leads (score ≥8/10): ${stats.hotLeads}
-- By urgency: Emergency ${stats.emergencyLeads}, Soon ${stats.soonLeads}, Browsing ${stats.browsingLeads}
-- By type: Replacements ${stats.replacements}, Repairs ${stats.repairs}
+- Insurance claim leads: ${stats.insuranceLeads}
 - Out-of-area leads: ${stats.outOfAreaLeads}
 - Avg estimate this week: $${stats.avgEstimate.toLocaleString()}
 - Total pipeline value: $${stats.totalEstimateValue.toLocaleString()}

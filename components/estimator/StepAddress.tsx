@@ -17,6 +17,9 @@ interface StepAddressProps {
     outOfArea: boolean
     nearestLocationId: string | null
     distanceMiles: number
+    footprintSqft: number | null
+    slope: string | null
+    solarMeasured: boolean
   }) => void
 }
 
@@ -30,6 +33,9 @@ export function StepAddress({ address: initialAddress, locations, onComplete }: 
   const [lat, setLat] = useState<number | null>(null)
   const [lng, setLng] = useState<number | null>(null)
   const [checking, setChecking] = useState(false)
+  const [footprintSqft, setFootprintSqft] = useState<number | null>(null)
+  const [detectedSlope, setDetectedSlope] = useState<string | null>(null)
+  const [solarMeasured, setSolarMeasured] = useState(false)
 
   useEffect(() => {
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
@@ -59,9 +65,26 @@ export function StepAddress({ address: initialAddress, locations, onComplete }: 
       placeAuto.addEventListener('gmp-select', async (event: any) => {
         const place = event.placePrediction.toPlace()
         await place.fetchFields({ fields: ['formattedAddress', 'location'] })
+        const resolvedLat = place.location?.lat() ?? null
+        const resolvedLng = place.location?.lng() ?? null
         setAddress(place.formattedAddress ?? '')
-        setLat(place.location?.lat() ?? null)
-        setLng(place.location?.lng() ?? null)
+        setLat(resolvedLat)
+        setLng(resolvedLng)
+        setFootprintSqft(null)
+        setDetectedSlope(null)
+        setSolarMeasured(false)
+
+        // Eagerly fetch building footprint — should resolve before user clicks submit
+        if (resolvedLat && resolvedLng) {
+          fetch(`/api/building-footprint?lat=${resolvedLat}&lng=${resolvedLng}`)
+            .then((r) => r.json())
+            .then((d) => {
+              setFootprintSqft(d.sqft ?? null)
+              setDetectedSlope(d.slope ?? null)
+              setSolarMeasured(d.solarMeasured ?? false)
+            })
+            .catch(() => {})
+        }
       })
     }
 
@@ -97,7 +120,17 @@ export function StepAddress({ address: initialAddress, locations, onComplete }: 
     }
 
     setChecking(false)
-    onComplete({ address, lat, lng, outOfArea, nearestLocationId, distanceMiles })
+    onComplete({
+      address,
+      lat,
+      lng,
+      outOfArea,
+      nearestLocationId,
+      distanceMiles,
+      footprintSqft,
+      slope: detectedSlope,
+      solarMeasured,
+    })
   }
 
   return (

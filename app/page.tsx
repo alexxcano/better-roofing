@@ -3,6 +3,7 @@ import { Hero } from '@/components/landing/Hero'
 import { PainPoints } from '@/components/landing/PainPoints'
 import { Features } from '@/components/landing/Features'
 import { HowItWorks } from '@/components/landing/HowItWorks'
+import { CinemaDemo } from '@/components/landing/CinemaDemo'
 import { Comparison } from '@/components/landing/Comparison'
 import { Testimonials } from '@/components/landing/Testimonials'
 import { PricingSection } from '@/components/landing/PricingSection'
@@ -17,6 +18,7 @@ export default function LandingPage() {
       <PainPoints />
       <Features />
       <HowItWorks />
+      <CinemaDemo />
       <Comparison />
       <Testimonials />
       <PricingSection />

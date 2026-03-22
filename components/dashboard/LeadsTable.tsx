@@ -13,21 +13,10 @@ const MATERIAL_LABELS: Record<string, string> = {
   flat: 'Flat/TPO',
 }
 
-const URGENCY_LABELS: Record<string, string> = {
-  emergency: '🚨 Emergency',
-  soon: '📅 Soon',
-  browsing: '🔍 Browsing',
-}
-
-const PROJECT_LABELS: Record<string, string> = {
-  replacement: 'Replacement',
-  repair: 'Repair',
-}
-
-const INSURANCE_LABELS: Record<string, { label: string; color: string }> = {
-  yes:    { label: '🌩️ Insurance claim',  color: 'text-blue-700 bg-blue-50 border-blue-200' },
-  no:     { label: '💰 Out of pocket',    color: 'text-stone-600 bg-stone-50 border-stone-200' },
-  unsure: { label: '🤷 Unsure',           color: 'text-yellow-700 bg-yellow-50 border-yellow-200' },
+const INSURANCE_LABELS: Record<string, { label: string; tableLabel: string; color: string }> = {
+  yes:    { label: '🌩️ Insurance claim', tableLabel: '🌩️ Claim',       color: 'text-blue-700 bg-blue-50 border-blue-200' },
+  no:     { label: '💰 Out of pocket',   tableLabel: '💰 Out of pocket', color: 'text-stone-600 bg-stone-50 border-stone-200' },
+  unsure: { label: '🤷 Unsure',          tableLabel: '🤷 Unsure',        color: 'text-yellow-700 bg-yellow-50 border-yellow-200' },
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; dot: string }> = {
@@ -48,7 +37,7 @@ function relativeTime(date: Date): { label: string; urgent: boolean } {
   return { label: new Date(date).toLocaleDateString(), urgent: false }
 }
 
-const GRID = 'grid-cols-[96px_1fr_1fr_130px_90px_180px_130px]'
+const GRID = 'grid-cols-[96px_1fr_1fr_150px_90px_180px_130px]'
 
 function StatusPill({
   status,
@@ -178,9 +167,7 @@ function LeadDrawer({
           <div className="flex items-start justify-between gap-4 mb-4">
             <div className="flex items-center gap-2.5 flex-wrap">
               <LeadScoreBadge
-                isHomeowner={lead.isHomeowner}
-                projectType={lead.projectType}
-                urgency={lead.urgency}
+                score={lead.leadScore}
                 outOfArea={lead.outOfArea}
                 showScore
               />
@@ -219,7 +206,7 @@ function LeadDrawer({
                 style={{ height: 200 }}
                 onClick={() => setMapExpanded(true)}
               >
-                <SatelliteMap lat={lead.lat} lng={lead.lng} zoom={19} width={1000} height={400} className="absolute inset-0 w-full h-full object-cover" />
+                <SatelliteMap lat={lead.lat} lng={lead.lng} zoom={19} className="absolute inset-0 w-full h-full" />
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-5 py-3">
                   <p className="text-white text-xs font-semibold">{lead.address}</p>
                 </div>
@@ -235,7 +222,7 @@ function LeadDrawer({
                   onClick={() => setMapExpanded(false)}
                 >
                   <div className="relative w-full max-w-3xl aspect-square max-h-[80vh]">
-                    <SatelliteMap lat={lead.lat!} lng={lead.lng!} zoom={19} width={1200} height={1200} className="w-full h-full object-cover" />
+                    <SatelliteMap lat={lead.lat!} lng={lead.lng!} zoom={19} className="w-full h-full" />
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-5 py-4">
                       <p className="text-white text-sm font-semibold">{lead.address}</p>
                     </div>
@@ -299,13 +286,7 @@ function LeadDrawer({
             <div className="grid grid-cols-2 gap-x-6 gap-y-4">
               <Detail label="Email" value={lead.email} />
               <Detail label="Phone" value={lead.phone ?? '—'} />
-              <Detail label="Project" value={PROJECT_LABELS[lead.projectType] ?? lead.projectType} />
               <Detail label="Material" value={MATERIAL_LABELS[lead.materialType] ?? lead.materialType} />
-              <Detail label="Urgency" value={URGENCY_LABELS[lead.urgency] ?? lead.urgency} />
-              <Detail label="Homeowner" value={
-                lead.isHomeowner === 'yes' ? 'Yes — owner' :
-                lead.isHomeowner === 'renter' ? 'Renter' : 'Non-owner'
-              } />
               <Detail
                 label="Roof Size"
                 value={`${lead.roofSquares} squares${lead.homeSqft ? ` (${lead.homeSqft.toLocaleString()} sq ft)` : ''}`}
@@ -490,7 +471,7 @@ export function LeadsTable({ leads: initialLeads, totalCount, limit }: LeadsTabl
         <div className="hidden md:block border-2 border-stone-300 bg-white overflow-hidden">
           {/* Header */}
           <div className={`grid ${GRID} bg-stone-100 border-b-2 border-stone-300`}>
-            {['Score', 'Name', 'Address', 'Urgency', 'Material', 'Estimate', 'Status'].map((h, i) => (
+            {['Score', 'Name', 'Address', 'Insurance', 'Material', 'Estimate', 'Status'].map((h, i) => (
               <div key={i} className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-stone-500 border-r border-stone-200 last:border-r-0">
                 {h}
               </div>
@@ -525,7 +506,7 @@ export function LeadsTable({ leads: initialLeads, totalCount, limit }: LeadsTabl
                   }`}
                 >
                   <div className="px-4 py-3 border-r border-stone-100 flex items-center overflow-hidden">
-                    <LeadScoreBadge isHomeowner={lead.isHomeowner} projectType={lead.projectType} urgency={lead.urgency} outOfArea={lead.outOfArea} showScore />
+                    <LeadScoreBadge score={lead.leadScore} outOfArea={lead.outOfArea} showScore />
                   </div>
                   <div className="px-4 py-3 border-r border-stone-100 flex flex-col justify-center min-w-0">
                     <div className="flex items-center gap-1.5 min-w-0">
@@ -533,17 +514,21 @@ export function LeadsTable({ leads: initialLeads, totalCount, limit }: LeadsTabl
                       {lead.outOfArea && <span title="Out of area — this address is outside your configured service radius" className="text-[9px] font-black uppercase tracking-widest text-orange-600 border border-orange-300 bg-orange-50 px-1 py-0.5 leading-none flex-shrink-0 cursor-help">OOA</span>}
                     </div>
                     <p className="text-[11px] text-stone-400 font-semibold mt-0.5 truncate">
-                      {PROJECT_LABELS[lead.projectType] ?? lead.projectType}
-                      {' · '}
-                      {(lead.insuranceClaim ?? 'no') === 'yes' && <span className="text-blue-600">🌩️ Claim · </span>}
-                      <span className={urgent ? 'text-orange-500' : ''}>{timeLabel}</span>
+                      <span className={urgent ? 'text-orange-500 font-bold' : ''}>{timeLabel}</span>
                     </p>
                   </div>
                   <div className="px-4 py-3 border-r border-stone-100 flex items-center min-w-0">
                     <p className="text-sm text-stone-600 truncate">{lead.address}</p>
                   </div>
                   <div className="px-4 py-3 border-r border-stone-100 flex items-center">
-                    <p className="text-sm text-stone-700 whitespace-nowrap">{URGENCY_LABELS[lead.urgency] ?? lead.urgency}</p>
+                    {(() => {
+                      const ins = INSURANCE_LABELS[lead.insuranceClaim ?? 'no']
+                      return (
+                        <span className={`text-[10px] font-bold border px-2 py-1 whitespace-nowrap ${ins.color}`}>
+                          {ins.tableLabel}
+                        </span>
+                      )
+                    })()}
                   </div>
                   <div className="px-4 py-3 border-r border-stone-100 flex items-center">
                     <span className="text-[10px] font-bold uppercase tracking-wide border border-stone-300 bg-stone-100 px-1.5 py-0.5 text-stone-600 whitespace-nowrap">
@@ -594,14 +579,12 @@ export function LeadsTable({ leads: initialLeads, totalCount, limit }: LeadsTabl
                         {lead.outOfArea && <span title="Out of area — this address is outside your configured service radius" className="text-[9px] font-black uppercase tracking-widest text-orange-600 border border-orange-300 bg-orange-50 px-1 py-0.5 leading-none cursor-help">OOA</span>}
                       </div>
                       <p className="text-xs text-stone-500 truncate">{lead.address}</p>
-                      <p className="text-[11px] text-stone-400 font-semibold mt-1">
-                        {PROJECT_LABELS[lead.projectType] ?? lead.projectType}
-                        {' · '}
-                        {(lead.insuranceClaim ?? 'no') === 'yes' && <span className="text-blue-600">🌩️ Claim · </span>}
+                      <p className="text-[11px] text-stone-400 font-semibold mt-1 flex items-center gap-1.5 flex-wrap">
+                        {(lead.insuranceClaim ?? 'no') === 'yes' && <span className="text-blue-600">🌩️ Claim ·</span>}
                         <span className={urgent ? 'text-orange-500 font-bold' : ''}>{timeLabel}</span>
                       </p>
                     </div>
-                    <LeadScoreBadge isHomeowner={lead.isHomeowner} projectType={lead.projectType} urgency={lead.urgency} outOfArea={lead.outOfArea} showScore />
+                    <LeadScoreBadge score={lead.leadScore} outOfArea={lead.outOfArea} showScore />
                   </div>
                   <div className="flex items-center justify-between mt-3 pt-3 border-t border-stone-100">
                     <span className="text-sm font-bold text-orange-600">

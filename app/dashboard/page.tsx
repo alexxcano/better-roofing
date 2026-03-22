@@ -32,9 +32,7 @@ export default async function DashboardPage() {
         estimateLow: true,
         estimateHigh: true,
         createdAt: true,
-        isHomeowner: true,
-        projectType: true,
-        urgency: true,
+        leadScore: true,
         outOfArea: true,
       },
     }),
@@ -131,9 +129,7 @@ export default async function DashboardPage() {
               >
                 <div className="flex items-center gap-3">
                   <LeadScoreBadge
-                    isHomeowner={lead.isHomeowner}
-                    projectType={lead.projectType}
-                    urgency={lead.urgency}
+                    score={lead.leadScore}
                     outOfArea={lead.outOfArea}
                     showScore
                   />

@@ -47,7 +47,7 @@ export default function PrivacyPage() {
             <ul className="list-disc pl-5 space-y-1">
               <li>Name, email address, and phone number submitted via the estimator</li>
               <li>Property address and approximate coordinates</li>
-              <li>Roofing project details (material type, square footage, urgency)</li>
+              <li>Roofing project details (material type, square footage, insurance claim status)</li>
             </ul>
             <p><strong>Automatically collected:</strong></p>
             <ul className="list-disc pl-5 space-y-1">

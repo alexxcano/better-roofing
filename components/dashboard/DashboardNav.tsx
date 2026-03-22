@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -20,7 +21,7 @@ import {
   BookOpen,
 } from 'lucide-react'
 
-const navItems = [
+const navItems: { href: string; label: string; icon: React.ElementType; external?: boolean }[] = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
   { href: '/dashboard/leads', label: 'Leads', icon: Users },
   { href: '/dashboard/locations', label: 'Locations', icon: MapPin },

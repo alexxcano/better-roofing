@@ -1,6 +1,5 @@
 import { Resend } from 'resend'
 import type { Lead } from '@prisma/client'
-import { calculateLeadScore } from '@/lib/leadScore'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -8,23 +7,13 @@ const MATERIAL_LABELS: Record<string, string> = {
   asphalt: 'Asphalt Shingles',
   metal: 'Metal Roofing',
   tile: 'Tile Roofing',
+  flat: 'Flat / TPO',
 }
 
-const URGENCY_LABELS: Record<string, string> = {
-  emergency: '🚨 Emergency — ASAP',
-  soon: '📅 Within 3 months',
-  browsing: '🔍 Just getting prices',
-}
-
-const PROJECT_LABELS: Record<string, string> = {
-  replacement: 'Full replacement',
-  repair: 'Repair only',
-}
-
-const HOMEOWNER_LABELS: Record<string, string> = {
-  yes: 'Homeowner',
-  no: 'Represents owner',
-  renter: 'Renter',
+const INSURANCE_LABELS: Record<string, string> = {
+  yes: '🌩️ Insurance claim',
+  no: '💰 Out of pocket',
+  unsure: '🤷 Not sure yet',
 }
 
 const TIER_COLORS: Record<string, string> = {
@@ -44,11 +33,10 @@ export async function sendLeadNotification({
   companyName: string
 }): Promise<void> {
   try {
-    const { score, tier, label, emoji } = calculateLeadScore({
-      isHomeowner: lead.isHomeowner,
-      projectType: lead.projectType,
-      urgency: lead.urgency,
-    })
+    const score = lead.leadScore
+    const tier = score >= 8 ? 'hot' : score >= 5 ? 'warm' : score >= 3 ? 'cool' : 'cold'
+    const label = score >= 8 ? 'Hot' : score >= 5 ? 'Warm' : score >= 3 ? 'Cool' : 'Cold'
+    const emoji = score >= 8 ? '🔥' : score >= 5 ? '⚡' : score >= 3 ? '👍' : '🧊'
     const tierColor = TIER_COLORS[tier]
 
     await resend.emails.send({
@@ -81,9 +69,8 @@ export async function sendLeadNotification({
 
             <h2 style="font-size: 18px; color: #0f172a; margin: 0 0 12px;">Qualification</h2>
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-              <tr><td style="padding: 6px 0; color: #64748b; width: 140px;">Homeowner?</td><td style="padding: 6px 0;">${HOMEOWNER_LABELS[lead.isHomeowner] ?? lead.isHomeowner}</td></tr>
-              <tr><td style="padding: 6px 0; color: #64748b;">Project</td><td style="padding: 6px 0;">${PROJECT_LABELS[lead.projectType] ?? lead.projectType}</td></tr>
-              <tr><td style="padding: 6px 0; color: #64748b;">Urgency</td><td style="padding: 6px 0;">${URGENCY_LABELS[lead.urgency] ?? lead.urgency}</td></tr>
+              <tr><td style="padding: 6px 0; color: #64748b; width: 140px;">Insurance</td><td style="padding: 6px 0;">${INSURANCE_LABELS[lead.insuranceClaim] ?? lead.insuranceClaim}</td></tr>
+              ${lead.outOfArea ? `<tr><td style="padding: 6px 0; color: #64748b;">Service Area</td><td style="padding: 6px 0; color: #ea580c; font-weight: 600;">⚠️ Outside service area</td></tr>` : ''}
             </table>
 
             <h2 style="font-size: 18px; color: #0f172a; margin: 0 0 12px;">Estimate</h2>

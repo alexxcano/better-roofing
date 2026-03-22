@@ -126,10 +126,7 @@ model Lead {
   lat          Float?
   lng          Float?
   // Qualification
-  isHomeowner     String   @default("yes")         // yes | no | renter
-  projectType     String   @default("replacement") // replacement | repair
   insuranceClaim  String   @default("no")          // yes | no | unsure
-  urgency         String   @default("soon")        // emergency | soon | browsing
   leadScore    Int      @default(5)
   outOfArea    Boolean  @default(false)
   // Estimate

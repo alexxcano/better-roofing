@@ -4,22 +4,14 @@ const MATERIAL_LABELS: Record<string, string> = {
   asphalt: 'asphalt shingles',
   metal: 'metal roofing',
   tile: 'tile roofing',
-}
-
-const URGENCY_CONTEXT: Record<string, string> = {
-  emergency: 'they have an urgent issue that needs immediate attention',
-  soon: 'they are planning to move forward soon',
-  browsing: 'they are in the early research phase',
+  flat: 'flat / TPO roofing',
 }
 
 export interface LeadEmailInput {
   companyName: string
   leadName: string
   address: string
-  projectType: 'replacement' | 'repair'
   insuranceClaim: string
-  urgency: 'emergency' | 'soon' | 'browsing'
-  isHomeowner: string
   materialType: string
   roofSquares: number
   estimateLow: number
@@ -37,10 +29,7 @@ export async function generateLeadDrafts(input: LeadEmailInput): Promise<LeadDra
     companyName,
     leadName,
     address,
-    projectType,
     insuranceClaim,
-    urgency,
-    isHomeowner,
     materialType,
     roofSquares,
     estimateLow,
@@ -49,8 +38,6 @@ export async function generateLeadDrafts(input: LeadEmailInput): Promise<LeadDra
 
   const sqft = Math.round(roofSquares * 100)
   const material = MATERIAL_LABELS[materialType] ?? materialType
-  const urgencyNote = URGENCY_CONTEXT[urgency] ?? 'they are looking for a quote'
-  const ownerLabel = isHomeowner === 'yes' ? 'homeowner' : isHomeowner === 'renter' ? 'renter' : 'property representative'
   const insuranceNote =
     insuranceClaim === 'yes' ? 'filing or planning to file an insurance claim (storm/hail damage)' :
     insuranceClaim === 'unsure' ? 'unsure whether to file an insurance claim' :
@@ -61,12 +48,9 @@ export async function generateLeadDrafts(input: LeadEmailInput): Promise<LeadDra
 Lead details:
 - Name: ${leadName}
 - Address: ${address}
-- Project: roof ${projectType}
 - Material: ${material}
 - Roof size: ~${sqft} sq ft (${roofSquares} squares)
 - Estimate range: $${estimateLow.toLocaleString()} – $${estimateHigh.toLocaleString()}
-- Situation: ${urgencyNote}
-- They are a ${ownerLabel}
 - Insurance: ${insuranceNote}
 
 Produce THREE sections separated by the exact delimiters shown:
@@ -74,7 +58,7 @@ Produce THREE sections separated by the exact delimiters shown:
 PART 1 — Lead intelligence brief (3 bullet points, shown to the contractor as an AI summary):
 - Bullet 1: Who this person is and what they need (1 sentence, specific)
 - Bullet 2: Job value context and lead quality signal (1 sentence)
-- Bullet 3: Recommended action with urgency context (1 sentence, actionable)
+- Bullet 3: Recommended action with timing context (1 sentence, actionable)
 - Format each bullet starting with "• "
 - Do NOT use markdown bold or headers
 

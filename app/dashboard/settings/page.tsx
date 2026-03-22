@@ -48,13 +48,13 @@ export default function SettingsPage() {
   const { toast } = useToast()
 
   const [pricing, setPricing] = useState<PricingSettings>({
-    pricePerSquare: 350,
-    pricePerSquareAsphalt: 350,
-    pricePerSquareMetal: 600,
-    pricePerSquareTile: 500,
-    pricePerSquareFlat: 450,
-    wasteFactor: 1.10,
-    tearOffCost: 500,
+    pricePerSquare: 425,
+    pricePerSquareAsphalt: 425,
+    pricePerSquareMetal: 750,
+    pricePerSquareTile: 650,
+    pricePerSquareFlat: 500,
+    wasteFactor: 1.12,
+    tearOffCost: 1000,
     offersAsphalt: true,
     offersMetal: true,
     offersTile: true,
