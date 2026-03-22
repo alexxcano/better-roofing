@@ -1,4 +1,4 @@
-import { Clock, Flame, LayoutDashboard, Mail, MapPin, Sparkles } from 'lucide-react'
+import { Clock, Flame, LayoutDashboard, Mail, MapPin, PanelRight, Sparkles } from 'lucide-react'
 
 const features = [
   {
@@ -17,7 +17,7 @@ const features = [
     title: 'Lead Scoring & Pipeline',
     subtitle: 'Stop chasing bad leads',
     description:
-      'Built-in qualification asks homeowner status, project type, and urgency. Hot leads score 8–10 and land at the top. Track every lead from New → Contacted → Quoted → Won — a lightweight CRM built into your dashboard.',
+      'Built-in qualification captures insurance status, material preference, and job value. Hot leads score 8–10 and land at the top. Track every lead from New → Contacted → Quoted → Won — a lightweight CRM built into your dashboard.',
     callout: 'Score + status on every lead',
     badge: null,
   },
@@ -27,7 +27,7 @@ const features = [
     title: 'AI Lead Intelligence',
     subtitle: 'Know before you call',
     description:
-      'Every lead arrives with a 3-bullet AI brief: who they are, job value context, and a specific recommended action with urgency timing. You know exactly what to say before you pick up the phone — something no competitor offers.',
+      'Every lead arrives with a 3-bullet AI brief: who they are, job value context, and a specific recommended action with timing context. You know exactly what to say before you pick up the phone — something no competitor offers.',
     callout: 'Instant lead brief',
     badge: 'Pro',
   },
@@ -37,7 +37,7 @@ const features = [
     title: 'AI Outreach Drafts',
     subtitle: 'Respond faster, win more jobs',
     description:
-      'The moment a lead submits, AI writes a personalized follow-up email and SMS using their name, estimate, address, and urgency. Open in your email client or Messages app, review, hit send. First to respond wins the job.',
+      'The moment a lead submits, AI writes a personalized follow-up email and SMS using their name, estimate, address, and insurance situation. Open in your email client or Messages app, review, hit send. First to respond wins the job.',
     callout: 'Reply in under 60 seconds',
     badge: 'Pro',
   },
@@ -59,6 +59,16 @@ const features = [
     description:
       'Every Monday, AI analyzes your leads and sends a plain-English report: what\'s trending in your area, which leads need follow-up, and where your best opportunities are. Like having a sales manager who never sleeps.',
     callout: 'Every Monday morning',
+    badge: 'Pro',
+  },
+  {
+    icon: PanelRight,
+    number: '07',
+    title: 'Floating Quote Tab',
+    subtitle: 'Always one click away',
+    description:
+      'A branded orange "Get Instant Quote" tab pinned to the edge of every page on your site — not just one page. Homeowners see it no matter where they\'re browsing. They click it and the estimator slides in instantly, without leaving the page. The easier you make it to get a quote, the more leads you capture.',
+    callout: 'Every page, always visible',
     badge: 'Pro',
   },
 ]

@@ -55,15 +55,14 @@ export function StepContact({ onComplete }: StepContactProps) {
         </div>
 
         <div className="space-y-1.5">
-          <p className="text-xs font-black uppercase tracking-widest text-stone-500">
-            Phone <span className="text-stone-300 font-semibold normal-case tracking-normal">— optional</span>
-          </p>
+          <p className="text-xs font-black uppercase tracking-widest text-stone-500">Phone Number</p>
           <input
             name="phone"
             type="tel"
             placeholder="(555) 123-4567"
             value={form.phone}
             onChange={handleChange}
+            required
             className={fieldClass}
           />
         </div>
@@ -71,7 +70,7 @@ export function StepContact({ onComplete }: StepContactProps) {
 
       <button
         type="submit"
-        disabled={!form.name || !form.email}
+        disabled={!form.name || !form.email || !form.phone}
         className="btn btn-primary w-full py-4 text-base font-black uppercase tracking-widest"
       >
         View My Estimate →

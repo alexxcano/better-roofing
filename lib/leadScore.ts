@@ -1,7 +1,7 @@
 export interface QualificationData {
-  isHomeowner: string   // 'yes' | 'no' | 'renter'
-  projectType: string   // 'replacement' | 'repair'
-  urgency: string       // 'emergency' | 'soon' | 'browsing'
+  insuranceClaim: string  // 'yes' | 'no' | 'unsure'
+  materialType: string    // 'asphalt' | 'metal' | 'tile' | 'flat'
+  estimateHigh: number
   outOfArea?: boolean
 }
 
@@ -15,21 +15,21 @@ export interface LeadScoreResult {
 export function calculateLeadScore(q: QualificationData): LeadScoreResult {
   let score = 0
 
-  // Homeowner status (0–3 pts)
-  if (q.isHomeowner === 'yes') score += 3
-  else if (q.isHomeowner === 'no') score += 1
-  // renter = 0
+  // Insurance claim (0–3 pts) — strongest signal for TX roofing contractors
+  if (q.insuranceClaim === 'yes') score += 3
+  else if (q.insuranceClaim === 'unsure') score += 1
 
-  // Project type (0–3 pts)
-  if (q.projectType === 'replacement') score += 3
-  else if (q.projectType === 'repair') score += 1
+  // Material type — metal/tile = high-value specialty job (1–2 pts)
+  if (q.materialType === 'metal' || q.materialType === 'tile') score += 2
+  else score += 1
 
-  // Urgency (1–4 pts)
-  if (q.urgency === 'emergency') score += 4
-  else if (q.urgency === 'soon') score += 2
-  else if (q.urgency === 'browsing') score += 1
+  // Job value from estimate (1–4 pts)
+  if (q.estimateHigh >= 20000) score += 4
+  else if (q.estimateHigh >= 15000) score += 3
+  else if (q.estimateHigh >= 10000) score += 2
+  else score += 1
 
-  // Out of area — hard cap at 4, regardless of qualification
+  // Out of area — hard cap at 4
   if (q.outOfArea) score = Math.min(score, 4)
 
   // Clamp to 1–10

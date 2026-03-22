@@ -8,6 +8,7 @@ import { StepSquareFootage } from './StepSquareFootage'
 import { StepContact } from './StepContact'
 import { StepResult } from './StepResult'
 import { OutOfAreaScreen } from './OutOfAreaScreen'
+import { CinemaOverlay } from './CinemaOverlay'
 import type { ServiceLocation } from '@/lib/serviceArea'
 import type { SlopeType } from '@/lib/estimate'
 
@@ -23,60 +24,18 @@ interface EstimatorWidgetProps {
 
 /**
  * Step map:
- *  1 = intro hero    (no progress bar)
- *  2 = project type  (auto-advance)
- *  3 = insurance     (auto-advance)
- *  4 = urgency       (auto-advance)
- *  5 = material      (auto-advance)
- *  6 = address
- *  7 = homeowner     (auto-advance)
- *  8 = size + slope
- *  9 = contact       (lead gate)
- * 10 = result
+ *  1 = intro hero      (no progress bar)
+ *  2 = address         (cinema transition on complete)
+ *  3 = insurance       (auto-advance, 2 options)
+ *  4 = material        (auto-advance)
+ *  5 = size + slope    (auto-advance — invisible to user when solarMeasured)
+ *  6 = contact         (lead gate)
+ *  7 = result
  *
- * Progress bar shows on steps 2–9 (8 steps total).
+ * User sees 4 visible steps: address, insurance, material, contact.
+ * Progress bar shows on steps 2–6.
  */
-const TOTAL_PROGRESS_STEPS = 8
-
-function JourneyQuestion({
-  question,
-  subtitle,
-  options,
-  onSelect,
-}: {
-  question: string
-  subtitle?: string
-  options: { value: string; emoji: string; label: string; description?: string }[]
-  onSelect: (value: string) => void
-}) {
-  return (
-    <div>
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-stone-900 leading-tight">{question}</h2>
-        {subtitle && <p className="text-stone-500 text-sm mt-1.5">{subtitle}</p>}
-      </div>
-      <div className="space-y-3">
-        {options.map((opt) => (
-          <button
-            key={opt.value}
-            type="button"
-            onClick={() => onSelect(opt.value)}
-            className="w-full flex items-center gap-4 px-5 py-4 border-2 border-stone-200 hover:border-orange-500 hover:bg-orange-50 text-left transition-all group"
-          >
-            <span className="text-2xl leading-none flex-shrink-0">{opt.emoji}</span>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-stone-900 group-hover:text-orange-700">{opt.label}</p>
-              {opt.description && (
-                <p className="text-sm text-stone-500 mt-0.5">{opt.description}</p>
-              )}
-            </div>
-            <span className="text-stone-300 group-hover:text-orange-500 font-bold text-xl flex-shrink-0">›</span>
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
+const TOTAL_PROGRESS_STEPS = 4
 
 export function EstimatorWidget({
   contractorId,
@@ -89,6 +48,7 @@ export function EstimatorWidget({
 }: EstimatorWidgetProps) {
   const [step, setStep] = useState(1)
   const [gated, setGated] = useState(false)
+  const [showCinema, setShowCinema] = useState(false)
   const [data, setData] = useState({
     address: '',
     lat: null as number | null,
@@ -96,10 +56,10 @@ export function EstimatorWidget({
     outOfArea: false,
     nearestLocationId: null as string | null,
     distanceMiles: 0,
-    isHomeowner: 'yes',
-    projectType: 'replacement',
+    footprintSqft: null as number | null,
+    detectedSlope: null as SlopeType | null,
+    solarMeasured: false,
     insuranceClaim: 'no',
-    urgency: 'soon',
     materialType: 'asphalt',
     slope: 'medium' as SlopeType,
     sqft: null as number | null,
@@ -113,6 +73,13 @@ export function EstimatorWidget({
     phone: '',
   })
   const [submitting, setSubmitting] = useState(false)
+  const [direction, setDirection] = useState<'forward' | 'back'>('forward')
+
+  const goForward = (n: number) => { setDirection('forward'); setStep(n) }
+  const goBack = () => {
+    setDirection('back')
+    setStep((s) => s === 6 ? 4 : s - 1)
+  }
 
   const handleAddressComplete = (d: {
     address: string
@@ -121,23 +88,69 @@ export function EstimatorWidget({
     outOfArea: boolean
     nearestLocationId: string | null
     distanceMiles: number
+    footprintSqft: number | null
+    slope: string | null
+    solarMeasured: boolean
   }) => {
-    setData((prev) => ({ ...prev, ...d }))
+    const { slope: _slope, ...rest } = d
+    setData((prev) => ({
+      ...prev,
+      ...rest,
+      detectedSlope: (_slope as SlopeType | null) ?? null,
+      solarMeasured: d.solarMeasured ?? false,
+    }))
     if (d.outOfArea && outOfAreaBehavior === 'GATE') {
       setGated(true)
       return
     }
-    setStep(7)
+    setShowCinema(true)
   }
 
-  const handleMaterialComplete = (d: { materialType: string }) => {
+  const handleCinemaComplete = () => {
+    setShowCinema(false)
+    goForward(3)
+  }
+
+  const handleMaterialComplete = async (d: { materialType: string }) => {
     setData((prev) => ({ ...prev, ...d }))
-    setStep(6)
+
+    // Helper: call estimate API and jump to step 6 if successful
+    const calcAndAdvance = async (sqft: number, slope: SlopeType, isSolar: boolean) => {
+      try {
+        const res = await fetch('/api/estimate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contractorId, homeSqft: sqft, materialType: d.materialType, slope, solarMeasured: isSolar }),
+        })
+        if (res.ok) {
+          const est = await res.json()
+          setData((prev) => ({ ...prev, sqft, slope, homeSqft: sqft, squares: est.squares, estimateLow: est.estimateLow, estimateHigh: est.estimateHigh }))
+          goForward(6)
+          return true
+        }
+      } catch {}
+      return false
+    }
+
+    // Solar measured all dimensions — skip step 5
+    if (data.solarMeasured && data.footprintSqft && data.detectedSlope) {
+      const ok = await calcAndAdvance(data.footprintSqft, data.detectedSlope as SlopeType, true)
+      if (ok) return
+    }
+
+    // User already completed step 5 (changed material going back) — recalculate
+    if (data.sqft && data.slope) {
+      const ok = await calcAndAdvance(data.sqft, data.slope, false)
+      if (ok) return
+    }
+
+    // First-time — needs step 5 (bedroom picker or slope selection)
+    goForward(5)
   }
 
   const handleSqftComplete = (d: { sqft: number; slope: SlopeType; squares: number; estimateLow: number; estimateHigh: number }) => {
     setData((prev) => ({ ...prev, ...d, homeSqft: d.sqft }))
-    setStep(9)
+    goForward(6)
   }
 
   const handleContactComplete = async (contactData: { name: string; email: string; phone: string }) => {
@@ -153,10 +166,7 @@ export function EstimatorWidget({
         address: data.address,
         lat: data.lat,
         lng: data.lng,
-        isHomeowner: data.isHomeowner,
-        projectType: data.projectType,
         insuranceClaim: data.insuranceClaim,
-        urgency: data.urgency,
         materialType: data.materialType,
         homeSqft: data.homeSqft ?? undefined,
         roofSlope: data.slope,
@@ -180,15 +190,29 @@ export function EstimatorWidget({
     }
 
     setSubmitting(false)
-    setStep(10)
+    goForward(7)
   }
 
-  // Map step → progress bar step (steps 2–9 = progress 1–8)
-  const progressStep = step >= 2 && step <= 9 ? step - 1 : null
+  // Map step → progress bar (4 visible steps: address=1, insurance=2, material=3, contact=4)
+  // Step 5 (size/slope) is invisible — maps to same progress as step 4
+  const progressMap: Record<number, number> = { 2: 1, 3: 2, 4: 3, 5: 3, 6: 4 }
+  const progressStep = progressMap[step] ?? null
   const showProgress = progressStep !== null && !gated
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
+      {/* Cinema overlay */}
+      {showCinema && data.lat && data.lng && (
+        <CinemaOverlay
+          lat={data.lat}
+          lng={data.lng}
+          address={data.address}
+          sqft={data.footprintSqft}
+          slope={data.detectedSlope}
+          onComplete={handleCinemaComplete}
+        />
+      )}
+
       {/* Thin progress bar at very top */}
       {showProgress && (
         <ProgressBar currentStep={progressStep!} totalSteps={TOTAL_PROGRESS_STEPS} />
@@ -199,7 +223,7 @@ export function EstimatorWidget({
 
           {/* STEP 1 — Intro hero */}
           {step === 1 && (
-            <div className="space-y-8">
+            <div className="space-y-8 animate-step-in">
               {/* Headline block */}
               <div>
                 <p className="text-xs font-black uppercase tracking-widest text-stone-400 mb-3">{companyName}</p>
@@ -213,7 +237,7 @@ export function EstimatorWidget({
 
               {/* CTA */}
               <button
-                onClick={() => setStep(2)}
+                onClick={() => goForward(2)}
                 className="btn btn-primary w-full py-4 text-base font-black uppercase tracking-widest"
               >
                 Get My Free Estimate →
@@ -247,14 +271,15 @@ export function EstimatorWidget({
             </div>
           )}
 
-          {/* STEPS 2–9 — Journey questions + out-of-area gate */}
-          {step >= 2 && step <= 9 && (
+          {/* STEPS 2–6 — Journey + out-of-area gate */}
+          {step >= 2 && step <= 6 && (
             <div className="relative">
               {gated ? (
                 <OutOfAreaScreen distanceMiles={data.distanceMiles} />
               ) : (
                 <>
-                  {data.outOfArea && step > 6 && (
+                  <div key={step} className={direction === 'forward' ? 'animate-step-in' : 'animate-step-in-back'}>
+                  {data.outOfArea && step > 2 && (
                     <div className="mb-6 border-l-4 border-orange-400 bg-orange-50 px-3 py-2">
                       <span className="text-xs font-bold text-orange-700 uppercase tracking-wide">
                         Outside service area — we&apos;ll still get you an estimate
@@ -263,59 +288,6 @@ export function EstimatorWidget({
                   )}
 
                   {step === 2 && (
-                    <JourneyQuestion
-                      question="What type of roofing project is this?"
-                      options={[
-                        { value: 'replacement', emoji: '🏗️', label: 'Full roof replacement', description: 'Remove old roof and install new' },
-                        { value: 'repair', emoji: '🔧', label: 'Repair only', description: 'Fix specific damaged areas' },
-                      ]}
-                      onSelect={(v) => {
-                        setData((prev) => ({ ...prev, projectType: v }))
-                        setStep(3)
-                      }}
-                    />
-                  )}
-
-                  {step === 3 && (
-                    <JourneyQuestion
-                      question="Is this an insurance claim?"
-                      subtitle="Helps us prepare the right type of estimate for you"
-                      options={[
-                        { value: 'yes', emoji: '🌩️', label: 'Yes — storm or hail damage', description: 'Filing or planning to file a claim' },
-                        { value: 'no', emoji: '💰', label: 'No — paying out of pocket' },
-                        { value: 'unsure', emoji: '🤷', label: "Not sure yet" },
-                      ]}
-                      onSelect={(v) => {
-                        setData((prev) => ({ ...prev, insuranceClaim: v }))
-                        setStep(4)
-                      }}
-                    />
-                  )}
-
-                  {step === 4 && (
-                    <JourneyQuestion
-                      question="How soon do you need this done?"
-                      options={[
-                        { value: 'emergency', emoji: '🚨', label: 'Emergency — ASAP', description: 'Active leak or storm damage' },
-                        { value: 'soon', emoji: '📅', label: 'Within the next 3 months' },
-                        { value: 'browsing', emoji: '🔍', label: "Just getting prices for now" },
-                      ]}
-                      onSelect={(v) => {
-                        setData((prev) => ({ ...prev, urgency: v }))
-                        setStep(5)
-                      }}
-                    />
-                  )}
-
-                  {step === 5 && (
-                    <StepMaterial
-                      materialType={data.materialType}
-                      enabledMaterials={enabledMaterials}
-                      onComplete={handleMaterialComplete}
-                    />
-                  )}
-
-                  {step === 6 && (
                     <StepAddress
                       address={data.address}
                       lat={data.lat}
@@ -325,22 +297,48 @@ export function EstimatorWidget({
                     />
                   )}
 
-                  {step === 7 && (
-                    <JourneyQuestion
-                      question="Are you the homeowner?"
-                      options={[
-                        { value: 'yes', emoji: '🏡', label: 'Yes, I own the home' },
-                        { value: 'no', emoji: '🤝', label: 'No, I manage or represent the owner' },
-                        { value: 'renter', emoji: '🔑', label: "I'm renting this property" },
-                      ]}
-                      onSelect={(v) => {
-                        setData((prev) => ({ ...prev, isHomeowner: v }))
-                        setStep(8)
-                      }}
+                  {step === 3 && (
+                    <div>
+                      <div className="mb-8">
+                        <h2 className="text-2xl font-bold text-stone-900 leading-tight">Is this an insurance claim?</h2>
+                        <p className="text-stone-500 text-sm mt-1.5">Helps us prepare the right type of estimate for you</p>
+                      </div>
+                      <div className="space-y-3">
+                        {[
+                          { value: 'yes',    emoji: '🌩️', label: 'Yes — storm or hail damage',  description: 'Filing or planning to file a claim' },
+                          { value: 'no',     emoji: '💰', label: 'No — paying out of pocket',    description: undefined },
+                          { value: 'unsure', emoji: '🤷', label: "Not sure yet",                 description: undefined },
+                        ].map((opt) => (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => {
+                              setData((prev) => ({ ...prev, insuranceClaim: opt.value }))
+                              goForward(4)
+                            }}
+                            className="w-full flex items-center gap-4 px-5 py-4 border-2 border-stone-200 hover:border-orange-500 hover:bg-orange-50 text-left transition-all group"
+                          >
+                            <span className="text-2xl leading-none flex-shrink-0">{opt.emoji}</span>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-stone-900 group-hover:text-orange-700">{opt.label}</p>
+                              {opt.description && <p className="text-sm text-stone-500 mt-0.5">{opt.description}</p>}
+                            </div>
+                            <span className="text-stone-300 group-hover:text-orange-500 font-bold text-xl flex-shrink-0">›</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {step === 4 && (
+                    <StepMaterial
+                      materialType={data.materialType}
+                      enabledMaterials={enabledMaterials}
+                      onComplete={handleMaterialComplete}
                     />
                   )}
 
-                  {step === 8 && (
+                  {step === 5 && (
                     <StepSquareFootage
                       contractorId={contractorId}
                       sqft={data.sqft}
@@ -348,13 +346,17 @@ export function EstimatorWidget({
                       lat={data.lat}
                       lng={data.lng}
                       materialType={data.materialType}
+                      footprintSqft={data.footprintSqft}
+                      detectedSlope={data.detectedSlope}
+                      solarMeasured={data.solarMeasured}
                       onComplete={handleSqftComplete}
                     />
                   )}
 
-                  {step === 9 && (
+                  {step === 6 && (
                     <StepContact onComplete={handleContactComplete} />
                   )}
+                  </div>
 
                   {submitting && (
                     <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
@@ -367,7 +369,7 @@ export function EstimatorWidget({
               {/* Back */}
               {!gated && (
                 <button
-                  onClick={() => setStep((s) => s - 1)}
+                  onClick={goBack}
                   className="mt-8 text-xs text-stone-400 hover:text-stone-600 uppercase tracking-widest font-bold transition-colors"
                 >
                   ← Back
@@ -376,17 +378,21 @@ export function EstimatorWidget({
             </div>
           )}
 
-          {/* STEP 10 — Result */}
-          {step === 10 && (
-            <StepResult
-              estimateLow={data.estimateLow}
-              estimateHigh={data.estimateHigh}
-              name={data.name}
-              companyName={companyName}
-              materialType={data.materialType}
-              urgency={data.urgency}
-              bookingUrl={bookingUrl}
-            />
+          {/* STEP 7 — Result */}
+          {step === 7 && (
+            <div className="animate-step-in">
+              <StepResult
+                estimateLow={data.estimateLow}
+                estimateHigh={data.estimateHigh}
+                name={data.name}
+                companyName={companyName}
+                materialType={data.materialType}
+                bookingUrl={bookingUrl}
+                address={data.address}
+                squares={data.squares}
+                insuranceClaim={data.insuranceClaim}
+              />
+            </div>
           )}
 
           <p className="text-center text-xs text-stone-300 mt-10">Powered by BetterRoofing</p>

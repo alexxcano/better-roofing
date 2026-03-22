@@ -15,10 +15,7 @@ const createLeadSchema = z.object({
   address: z.string().min(1),
   lat: z.number().optional().nullable(),
   lng: z.number().optional().nullable(),
-  isHomeowner: z.enum(['yes', 'no', 'renter']).default('yes'),
-  projectType: z.enum(['replacement', 'repair']).default('replacement'),
   insuranceClaim: z.enum(['yes', 'no', 'unsure']).default('no'),
-  urgency: z.enum(['emergency', 'soon', 'browsing']).default('soon'),
   materialType: z.enum(['asphalt', 'metal', 'tile', 'flat']).default('asphalt'),
   roofSlope: z.enum(['flat', 'low', 'medium', 'steep']).default('medium'),
   homeSqft: z.number().positive().optional(),
@@ -51,7 +48,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 })
     }
 
-    const { contractorId, isHomeowner, projectType, insuranceClaim, urgency, lat, lng, ...rest } = parsed.data
+    const { contractorId, insuranceClaim, lat, lng, ...rest } = parsed.data
 
     // Verify active subscription
     const subscription = await prisma.subscription.findUnique({ where: { contractorId } })
@@ -98,15 +95,17 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const { score: leadScore } = calculateLeadScore({ isHomeowner, projectType, urgency, outOfArea })
+    const { score: leadScore } = calculateLeadScore({
+      insuranceClaim,
+      materialType: parsed.data.materialType ?? 'asphalt',
+      estimateHigh: parsed.data.estimateHigh ?? 0,
+      outOfArea,
+    })
 
     const lead = await prisma.lead.create({
       data: {
         contractorId,
-        isHomeowner,
-        projectType,
         insuranceClaim,
-        urgency,
         leadScore,
         outOfArea,
         locationId: nearestLocationId,
@@ -133,10 +132,7 @@ export async function POST(req: NextRequest) {
       companyName: contractor.companyName,
       leadName: lead.name,
       address: lead.address,
-      projectType: lead.projectType as 'replacement' | 'repair',
       insuranceClaim: lead.insuranceClaim,
-      urgency: lead.urgency as 'emergency' | 'soon' | 'browsing',
-      isHomeowner: lead.isHomeowner,
       materialType: lead.materialType,
       roofSquares: lead.roofSquares,
       estimateLow: lead.estimateLow,

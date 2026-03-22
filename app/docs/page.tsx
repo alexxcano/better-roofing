@@ -5,6 +5,7 @@ import { Footer } from '@/components/landing/Footer'
 const NAV = [
   { href: '#quick-start',     label: 'Quick Start' },
   { href: '#install-widget',  label: 'Install Widget' },
+  { href: '#floating-tab',    label: 'Floating Tab Widget' },
   { href: '#pricing-setup',   label: 'Pricing & Materials' },
   { href: '#ai-features',     label: 'AI Features' },
   { href: '#lead-pipeline',   label: 'Lead Pipeline' },
@@ -206,6 +207,129 @@ export default function DocsPage() {
               </Card>
             </section>
 
+            {/* ── Floating Tab Widget ── */}
+            <section>
+              <SectionHeader id="floating-tab" eyebrow="Pro Feature" title="Floating Tab Widget" />
+
+              <Card title="What It Does">
+                <p className="text-sm text-stone-500 mb-4">
+                  The floating tab is an orange <strong>"Get Instant Quote"</strong> button pinned to the edge of every page on your website — not just one page. Homeowners see it no matter where they are on your site. When they click it, the estimator slides in without them leaving the page.
+                </p>
+                <div className="border border-stone-200 divide-y divide-stone-200">
+                  <div className="px-4 py-3 grid grid-cols-[120px_1fr] gap-4 text-sm">
+                    <p className="font-bold text-stone-700">Embed widget</p>
+                    <p className="text-stone-500">Sits inside one specific page (e.g. your homepage or a "Get a Quote" page).</p>
+                  </div>
+                  <div className="px-4 py-3 grid grid-cols-[120px_1fr] gap-4 text-sm">
+                    <p className="font-bold text-orange-600">Floating tab</p>
+                    <p className="text-stone-500">Appears on every page automatically. Homeowners can request a quote from anywhere on your site.</p>
+                  </div>
+                </div>
+                <p className="text-xs text-stone-400 font-semibold mt-3">
+                  You can run both at the same time — they don't conflict.
+                </p>
+              </Card>
+
+              <Card title="The Snippet">
+                <p className="text-sm text-stone-500 mb-4">
+                  Go to <strong>Dashboard → Install Widget</strong> to copy your personal tab widget snippet. It's a single line:
+                </p>
+                <CodeBlock code={`<script
+  src="https://app.betterroofing.co/tab-widget.js"
+  data-contractor-id="YOUR_ID"
+  async
+></script>`} />
+                <p className="text-xs text-stone-400 font-semibold mt-3 uppercase tracking-wide">
+                  Paste this in your website's global footer — not just one page — so the tab appears everywhere.
+                </p>
+              </Card>
+
+              <Card title="Where to Paste It">
+                <p className="text-sm text-stone-500 mb-5">
+                  The key difference from the embed widget: paste this in your <strong>site-wide footer</strong> so it loads on every page automatically.
+                </p>
+                <div className="space-y-5">
+                  {[
+                    {
+                      platform: 'WordPress',
+                      steps: [
+                        'Install the "Insert Headers and Footers" plugin (free) if you haven\'t already',
+                        'Go to Settings → Insert Headers and Footers → Scripts in Footer',
+                        'Paste your snippet and save — it will appear on every page automatically',
+                      ],
+                    },
+                    {
+                      platform: 'Squarespace',
+                      steps: [
+                        'Go to Settings → Advanced → Code Injection',
+                        'Paste your snippet in the Footer section',
+                        'It will appear on every page of your site automatically',
+                      ],
+                    },
+                    {
+                      platform: 'Wix',
+                      steps: [
+                        'Go to Settings → Custom Code',
+                        'Click Add Custom Code and paste your snippet',
+                        'Set location to "Body — end" and apply to "All Pages"',
+                      ],
+                    },
+                    {
+                      platform: 'Custom HTML',
+                      steps: [
+                        'Paste your snippet before the closing </body> tag in your global layout or template file',
+                        'Because it\'s in the layout file, it loads on every page automatically',
+                      ],
+                    },
+                  ].map(({ platform, steps }) => (
+                    <div key={platform}>
+                      <p className="text-xs font-black uppercase tracking-widest text-stone-700 mb-2">{platform}</p>
+                      <ol className="space-y-1">
+                        {steps.map((s, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-stone-500">
+                            <span className="font-bold text-orange-500 flex-shrink-0">{i + 1}.</span>
+                            {s}
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+
+              <Card title="Optional Customizations">
+                <p className="text-sm text-stone-500 mb-4">
+                  Two optional settings you can add to the snippet — both are simple to change.
+                </p>
+                <div className="space-y-4">
+                  <div className="border-l-2 border-orange-300 pl-3">
+                    <p className="text-xs font-black uppercase tracking-wide text-stone-500 mb-1">Change the tab label</p>
+                    <p className="text-sm text-stone-500 mb-2">
+                      By default the tab says <strong>"Get Instant Quote"</strong>. To change it, add <code className="bg-stone-100 px-1.5 py-0.5 text-xs font-mono text-stone-700">data-tab-text</code> to your snippet:
+                    </p>
+                    <CodeBlock code={`<script
+  src="https://app.betterroofing.co/tab-widget.js"
+  data-contractor-id="YOUR_ID"
+  data-tab-text="Free Estimate"
+  async
+></script>`} />
+                  </div>
+                  <div className="border-l-2 border-orange-300 pl-3">
+                    <p className="text-xs font-black uppercase tracking-wide text-stone-500 mb-1">Move the tab to the left side</p>
+                    <p className="text-sm text-stone-500 mb-2">
+                      The tab appears on the right edge by default. To move it to the left, add <code className="bg-stone-100 px-1.5 py-0.5 text-xs font-mono text-stone-700">data-position=&quot;left&quot;</code>:
+                    </p>
+                    <CodeBlock code={`<script
+  src="https://app.betterroofing.co/tab-widget.js"
+  data-contractor-id="YOUR_ID"
+  data-position="left"
+  async
+></script>`} />
+                  </div>
+                </div>
+              </Card>
+            </section>
+
             {/* ── Pricing & Materials ── */}
             <section>
               <SectionHeader id="pricing-setup" eyebrow="Configuration" title="Pricing & Materials" />
@@ -227,25 +351,23 @@ export default function DocsPage() {
                   ))}
                 </div>
               </Card>
-              <Card title="Estimate Formula">
-                <p className="text-sm text-stone-500 mb-3">
-                  The widget calculates a low/high range using your settings:
+              <Card title="Configuring Your Pricing">
+                <p className="text-sm text-stone-500 mb-4">
+                  Go to <strong>Dashboard → Settings</strong> to set your prices. The widget uses these to generate the estimate range shown to each homeowner.
                 </p>
-                <CodeBlock code={`squares    = (home_sqft × slope_factor) / 100
-base       = squares × price_per_square × waste_factor
-total      = base + tear_off_cost
-low / high = total ± a calibrated margin  (rounded to nearest $100)`} />
-                <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
-                  {[
-                    { label: 'Slope factor',  value: 'Adjusted automatically based on roof pitch selected by the homeowner' },
-                    { label: 'Waste factor',  value: 'Set in Dashboard → Settings. Accounts for cuts and material overlap.' },
-                    { label: 'Tear-off cost', value: 'Flat fee you configure — added to every estimate.' },
-                  ].map((r) => (
-                    <div key={r.label} className="col-span-2 border-l-2 border-orange-300 pl-3">
-                      <p className="font-black uppercase tracking-wide text-stone-500">{r.label}</p>
-                      <p className="text-stone-600 mt-0.5">{r.value}</p>
-                    </div>
-                  ))}
+                <div className="space-y-3 text-sm text-stone-500">
+                  <div className="border-l-2 border-orange-300 pl-3">
+                    <p className="font-black text-xs uppercase tracking-wide text-stone-500 mb-0.5">Price per Square</p>
+                    <p>Your labor + material rate per roofing square (100 sq ft), by material type. Set a separate rate for each material you offer.</p>
+                  </div>
+                  <div className="border-l-2 border-orange-300 pl-3">
+                    <p className="font-black text-xs uppercase tracking-wide text-stone-500 mb-0.5">Waste Factor</p>
+                    <p>A multiplier that accounts for cuts, overlaps, and leftover material. A typical value is 1.10–1.15 (10–15% waste).</p>
+                  </div>
+                  <div className="border-l-2 border-orange-300 pl-3">
+                    <p className="font-black text-xs uppercase tracking-wide text-stone-500 mb-0.5">Tear-Off Cost</p>
+                    <p>A flat fee added to every estimate to cover removal of the existing roof. Set to $0 if your price per square already includes tear-off.</p>
+                  </div>
                 </div>
               </Card>
             </section>
@@ -263,9 +385,9 @@ low / high = total ± a calibrated margin  (rounded to nearest $100)`} />
                   <p className="text-[10px] font-black uppercase tracking-widest text-orange-400 mb-3">AI Lead Intelligence · Example</p>
                   <ul className="space-y-2">
                     {[
-                      'Homeowner on Shoal Creek requesting emergency asphalt replacement — likely storm or active leak requiring immediate attention.',
-                      'Estimated job value $11,300 avg; score 10/10 — highest-priority lead in your pipeline.',
-                      'Call within 1–2 hours — emergency leads have a significantly higher conversion rate when contacted same day.',
+                      'Homeowner on Shoal Creek with a confirmed insurance claim — hail damage, needs full asphalt replacement.',
+                      'Estimated job value $11,300 avg; score 9/10 — one of your highest-priority leads this week.',
+                      'Reach out today — insurance claim leads have a significantly higher close rate when contacted within 24 hours.',
                     ].map((b, i) => (
                       <li key={i} className="flex items-start gap-2.5">
                         <span className="h-1.5 w-1.5 rounded-full bg-orange-500 flex-shrink-0 mt-1.5" />
@@ -276,7 +398,7 @@ low / high = total ± a calibrated margin  (rounded to nearest $100)`} />
                 </div>
                 <p className="text-sm text-stone-500">
                   The brief always covers: <strong>who the lead is</strong>, <strong>job value context</strong>,
-                  and a <strong>specific recommended action with urgency timing</strong>. Insurance claim leads get
+                  and a <strong>specific recommended action with timing context</strong>. Insurance claim leads get
                   tailored language around working with adjusters.
                 </p>
               </Card>
@@ -284,7 +406,7 @@ low / high = total ± a calibrated margin  (rounded to nearest $100)`} />
               <Card title={`AI Follow-up Drafts (Email & SMS)  ·  Pro`}>
                 <p className="text-sm text-stone-500 mb-4">
                   At the same time as the intelligence brief, BetterRoofing writes a personalized follow-up email
-                  and SMS for each lead — using their name, address, estimate range, material type, and urgency level.
+                  and SMS for each lead — using their name, address, estimate range, material type, and insurance situation.
                 </p>
                 <div className="space-y-3 mb-4">
                   <div className="border border-stone-200 px-4 py-3">
@@ -318,7 +440,7 @@ low / high = total ± a calibrated margin  (rounded to nearest $100)`} />
                 <ul className="space-y-2 mb-4">
                   {[
                     'Total leads received and average estimate value for the week',
-                    'Which lead types dominated (e.g. emergency replacements trending up)',
+                    'Which lead types dominated (e.g. insurance claims trending up, metal roofing interest)',
                     'Specific leads that haven\'t been contacted and may need follow-up',
                     'Observations about your service area (e.g. out-of-area patterns)',
                     'A prioritized recommendation for the week ahead',
@@ -374,11 +496,11 @@ low / high = total ± a calibrated margin  (rounded to nearest $100)`} />
                 <p className="text-sm text-stone-500 mb-4">
                   Set a notification email under <strong>Dashboard → Settings → Notifications</strong>.
                   You'll get an email the moment a lead submits — including their name, address, estimate range,
-                  material, urgency level, and lead score.
+                  material, insurance situation, and lead score.
                 </p>
                 <div className="bg-stone-50 border border-stone-200 px-4 py-3 text-sm text-stone-600 space-y-1">
                   <p><strong>Subject:</strong> New lead — Sarah M. · Score 9/10 · $13,400 avg estimate</p>
-                  <p><strong>Body:</strong> Full lead profile with address, estimate range, material, urgency, and a link to your dashboard.</p>
+                  <p><strong>Body:</strong> Full lead profile with address, estimate range, material, insurance status, and a link to your dashboard.</p>
                 </div>
                 <p className="text-xs text-stone-400 font-semibold mt-3">
                   Leave the field blank to disable email notifications.
@@ -402,10 +524,7 @@ low / high = total ± a calibrated margin  (rounded to nearest $100)`} />
   "address":         "123 Main St, Austin, TX 78701",
   "lat":             30.2672,
   "lng":             -97.7431,
-  "isHomeowner":     "yes",
-  "projectType":     "replacement",
   "insuranceClaim":  "yes",
-  "urgency":         "emergency",
   "materialType":    "asphalt",
   "roofSlope":       "medium",
   "homeSqft":        2000,
@@ -466,85 +585,43 @@ low / high = total ± a calibrated margin  (rounded to nearest $100)`} />
               <Card title="Custom Webhooks (Make, n8n, or your own server)">
                 <p className="text-sm text-stone-500 mb-3">
                   Any endpoint that accepts a <code className="bg-stone-100 px-1.5 py-0.5 text-xs font-mono text-stone-700">POST</code> with
-                  a JSON body will work. A few things to know:
+                  a JSON body will work — including Make (formerly Integromat) and n8n. Use the <strong>Custom webhook</strong> module as your trigger,
+                  paste the URL into <strong>Dashboard → Settings → Webhook URL</strong>, and submit a test lead to confirm the connection.
                 </p>
-                <ul className="space-y-2">
-                  {[
-                    'Your endpoint must respond with a 2xx status within 10 seconds.',
-                    'BetterRoofing does not retry failed webhook deliveries.',
-                    'The Content-Type header is always application/json.',
-                    'For Make (formerly Integromat), use the "Custom webhook" module as the trigger.',
-                  ].map((note) => (
-                    <li key={note} className="flex items-start gap-2 text-sm text-stone-500">
-                      <span className="text-orange-500 font-black flex-shrink-0">→</span>
-                      {note}
-                    </li>
-                  ))}
-                </ul>
               </Card>
             </section>
 
             {/* ── Lead Scoring ── */}
             <section>
               <SectionHeader id="lead-scoring" eyebrow="Reference" title="Lead Scoring" />
-              <Card title="How Scores Are Calculated">
+              <Card title="How Scores Work">
                 <p className="text-sm text-stone-500 mb-5">
-                  Every lead receives a score from 1–10 based on four qualification signals captured during the estimate flow.
-                  Higher-value signals (full replacement, emergency urgency, confirmed homeowner) contribute more to the score.
+                  Every lead is automatically scored 1–10 the moment it comes in. The score is based on signals that predict job value and close likelihood — so you always know which leads to call first.
                 </p>
-                <div className="space-y-4">
+                <div className="space-y-2 mb-6 text-sm text-stone-500">
                   {[
-                    {
-                      factor: 'Project Type',
-                      values: [
-                        { label: 'Full Replacement', tier: 'High',   color: 'text-green-600' },
-                        { label: 'Repair',           tier: 'Medium', color: 'text-amber-600' },
-                      ],
-                    },
-                    {
-                      factor: 'Urgency',
-                      values: [
-                        { label: 'Emergency',     tier: 'High',   color: 'text-green-600' },
-                        { label: 'Soon',          tier: 'Medium', color: 'text-amber-600' },
-                        { label: 'Just browsing', tier: 'Low',    color: 'text-stone-400' },
-                      ],
-                    },
-                    {
-                      factor: 'Homeowner Status',
-                      values: [
-                        { label: 'Homeowner',     tier: 'High',   color: 'text-green-600' },
-                        { label: 'Renter',        tier: 'Medium', color: 'text-amber-600' },
-                        { label: 'Not homeowner', tier: 'Low',    color: 'text-stone-400' },
-                      ],
-                    },
-                    {
-                      factor: 'Service Area',
-                      values: [
-                        { label: 'Inside service area',  tier: 'No impact',  color: 'text-stone-500' },
-                        { label: 'Outside service area', tier: 'Penalized',  color: 'text-red-500' },
-                      ],
-                    },
-                  ].map(({ factor, values }) => (
-                    <div key={factor} className="border border-stone-200">
-                      <div className="px-4 py-2 bg-stone-50 border-b border-stone-200">
-                        <p className="text-xs font-black uppercase tracking-widest text-stone-500">{factor}</p>
+                    { signal: 'Insurance claim', impact: 'High', note: 'Insurance jobs are larger and more likely to close — scored highest.' },
+                    { signal: 'Estimate value',  impact: 'High', note: 'Bigger jobs score higher. Reflects your actual pricing settings.' },
+                    { signal: 'Material type',   impact: 'Medium', note: 'Premium materials (metal, tile) indicate a higher-intent buyer.' },
+                    { signal: 'Out of area',     impact: 'Penalty', note: 'Leads outside your service radius are capped at a lower score to keep your pipeline clean.' },
+                  ].map(({ signal, impact, note }) => (
+                    <div key={signal} className="flex items-start gap-4 border border-stone-200 px-4 py-3">
+                      <div className="w-36 flex-shrink-0">
+                        <p className="font-bold text-stone-800">{signal}</p>
+                        <p className={`text-xs font-black uppercase tracking-wide mt-0.5 ${
+                          impact === 'High' ? 'text-green-600' : impact === 'Medium' ? 'text-amber-600' : impact === 'Penalty' ? 'text-red-500' : 'text-stone-400'
+                        }`}>{impact}</p>
                       </div>
-                      <div className="divide-y divide-stone-100">
-                        {values.map(({ label, tier, color }) => (
-                          <div key={label} className="flex items-center justify-between px-4 py-2.5 text-sm">
-                            <span className="text-stone-700 font-medium">{label}</span>
-                            <span className={`font-bold text-sm ${color}`}>{tier}</span>
-                          </div>
-                        ))}
-                      </div>
+                      <p className="text-xs text-stone-500 leading-relaxed">{note}</p>
                     </div>
                   ))}
                 </div>
-                <div className="mt-5 grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-4 gap-3">
                   {[
-                    { range: '8–10', label: 'Hot lead',  color: 'bg-red-50 border-red-200 text-red-700' },
-                    { range: '5–7',  label: 'Warm lead', color: 'bg-amber-50 border-amber-300 text-amber-800' },
-                    { range: '1–4',  label: 'Cool lead', color: 'bg-stone-50 border-stone-200 text-stone-500' },
+                    { range: '8–10', label: 'Hot',  color: 'bg-red-50 border-red-200 text-red-700' },
+                    { range: '5–7',  label: 'Warm', color: 'bg-amber-50 border-amber-300 text-amber-800' },
+                    { range: '3–4',  label: 'Cool', color: 'bg-blue-50 border-blue-200 text-blue-700' },
+                    { range: '1–2',  label: 'Cold', color: 'bg-stone-50 border-stone-200 text-stone-500' },
                   ].map(({ range, label, color }) => (
                     <div key={range} className={`border-2 px-4 py-3 text-center ${color}`}>
                       <p className="font-barlow font-black text-2xl leading-none">{range}</p>
@@ -553,8 +630,7 @@ low / high = total ± a calibrated margin  (rounded to nearest $100)`} />
                   ))}
                 </div>
                 <p className="text-xs text-stone-400 font-semibold mt-4">
-                  The AI Lead Intelligence Brief <ProBadge /> uses the score alongside urgency and job context
-                  to generate its recommended action — e.g. "call within 2 hours" for a 10/10 emergency lead.
+                  The AI Lead Intelligence Brief <ProBadge /> uses the score and job context to recommend a specific action — so you always know what to do next.
                 </p>
               </Card>
             </section>

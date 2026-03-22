@@ -30,6 +30,7 @@ const ROWS: Row[] = [
   // Pro integrations
   { label: 'Webhook / Zapier',                starter: false,   pro: true, differentiator: true, proOnly: true },
   { label: 'Booking CTA on widget',           starter: false,   pro: true, differentiator: true, proOnly: true },
+  { label: 'Floating tab widget (every page)', starter: false,   pro: true, differentiator: true, proOnly: true },
   { label: 'Support',                         starter: 'Email', pro: 'Priority', differentiator: true },
 ]
 
