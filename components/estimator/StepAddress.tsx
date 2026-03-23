@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { checkServiceArea } from '@/lib/serviceArea'
 import type { ServiceLocation } from '@/lib/serviceArea'
+import { AddressAutocomplete } from '@/components/shared/AddressAutocomplete'
 
 interface StepAddressProps {
   address: string
@@ -23,12 +24,10 @@ interface StepAddressProps {
   }) => void
 }
 
-declare global {
-  interface Window { google: any; initGooglePlaces: () => void }
-}
+const inputClass =
+  'w-full border-2 border-stone-200 bg-white px-3 py-3.5 text-[0.9375rem] text-stone-900 placeholder:text-stone-400 outline-none focus:border-orange-500 transition-colors'
 
 export function StepAddress({ address: initialAddress, locations, onComplete }: StepAddressProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
   const [address, setAddress] = useState(initialAddress)
   const [lat, setLat] = useState<number | null>(null)
   const [lng, setLng] = useState<number | null>(null)
@@ -37,70 +36,24 @@ export function StepAddress({ address: initialAddress, locations, onComplete }: 
   const [detectedSlope, setDetectedSlope] = useState<string | null>(null)
   const [solarMeasured, setSolarMeasured] = useState(false)
 
-  useEffect(() => {
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
-    if (!apiKey || typeof window === 'undefined') return
+  const handleSelect = (data: { address: string; lat: number; lng: number }) => {
+    setAddress(data.address)
+    setLat(data.lat)
+    setLng(data.lng)
+    setFootprintSqft(null)
+    setDetectedSlope(null)
+    setSolarMeasured(false)
 
-    const init = () => {
-      if (!containerRef.current || !window.google?.maps?.places?.PlaceAutocompleteElement) return
-
-      containerRef.current.innerHTML = ''
-
-      const placeAuto = new window.google.maps.places.PlaceAutocompleteElement({
-        types: ['address'],
-        componentRestrictions: { country: 'us' },
+    // Eagerly fetch building footprint — should resolve before user clicks submit
+    fetch(`/api/building-footprint?lat=${data.lat}&lng=${data.lng}`)
+      .then((r) => r.json())
+      .then((d) => {
+        setFootprintSqft(d.sqft ?? null)
+        setDetectedSlope(d.slope ?? null)
+        setSolarMeasured(d.solarMeasured ?? false)
       })
-
-      containerRef.current.appendChild(placeAuto)
-
-      // Capture typed text for fallback (no autocomplete selected)
-      placeAuto.addEventListener('input', (e: Event) => {
-        const val = (e.target as HTMLInputElement)?.value ?? ''
-        setAddress(val)
-        setLat(null)
-        setLng(null)
-      })
-
-      // New Places API (New) selection event
-      placeAuto.addEventListener('gmp-select', async (event: any) => {
-        const place = event.placePrediction.toPlace()
-        await place.fetchFields({ fields: ['formattedAddress', 'location'] })
-        const resolvedLat = place.location?.lat() ?? null
-        const resolvedLng = place.location?.lng() ?? null
-        setAddress(place.formattedAddress ?? '')
-        setLat(resolvedLat)
-        setLng(resolvedLng)
-        setFootprintSqft(null)
-        setDetectedSlope(null)
-        setSolarMeasured(false)
-
-        // Eagerly fetch building footprint — should resolve before user clicks submit
-        if (resolvedLat && resolvedLng) {
-          fetch(`/api/building-footprint?lat=${resolvedLat}&lng=${resolvedLng}`)
-            .then((r) => r.json())
-            .then((d) => {
-              setFootprintSqft(d.sqft ?? null)
-              setDetectedSlope(d.slope ?? null)
-              setSolarMeasured(d.solarMeasured ?? false)
-            })
-            .catch(() => {})
-        }
-      })
-    }
-
-    if (window.google?.maps) { init(); return }
-
-    window.initGooglePlaces = () => init()
-
-    if (!document.querySelector('script[data-gmaps]')) {
-      const s = document.createElement('script')
-      // v=weekly uses the latest stable release which includes PlaceAutocompleteElement + Places API (New)
-      s.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&v=weekly&callback=initGooglePlaces`
-      s.async = true
-      s.dataset.gmaps = '1'
-      document.head.appendChild(s)
-    }
-  }, [])
+      .catch(() => {})
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -142,7 +95,13 @@ export function StepAddress({ address: initialAddress, locations, onComplete }: 
 
       <div className="space-y-1.5">
         <label className="block text-xs font-black uppercase tracking-widest text-stone-500">Property Address</label>
-        <div ref={containerRef} className="place-autocomplete-container" />
+        <AddressAutocomplete
+          value={address}
+          onChange={(v) => { setAddress(v); setLat(null); setLng(null) }}
+          onSelect={handleSelect}
+          placeholder="123 Main St, Austin, TX"
+          className={inputClass}
+        />
       </div>
 
       <button

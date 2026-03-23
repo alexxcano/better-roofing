@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import { MapPin, Plus, Trash2, Edit2, Check, X } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
+import { AddressAutocomplete } from '@/components/shared/AddressAutocomplete'
 
 interface Location {
   id: string
@@ -19,68 +20,7 @@ interface LocationsClientProps {
   isStarter: boolean
 }
 
-declare global {
-  interface Window { google: any; initGooglePlacesLoc: () => void }
-}
-
 const inputClass = 'w-full border-2 border-stone-300 bg-white text-stone-900 text-sm font-medium px-3 py-2 focus:outline-none focus:border-orange-500 placeholder:text-stone-400'
-
-function AddressAutocomplete({
-  value,
-  onChange,
-  onSelect,
-}: {
-  value: string
-  onChange: (v: string) => void
-  onSelect: (data: { address: string; lat: number; lng: number }) => void
-}) {
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    const init = () => {
-      if (!inputRef.current || !window.google) return
-      const ac = new window.google.maps.places.Autocomplete(inputRef.current, {
-        types: ['address'],
-        componentRestrictions: { country: 'us' },
-      })
-      ac.addListener('place_changed', () => {
-        const place = ac.getPlace()
-        if (place.formatted_address && place.geometry?.location) {
-          onSelect({
-            address: place.formatted_address,
-            lat: place.geometry.location.lat(),
-            lng: place.geometry.location.lng(),
-          })
-        }
-      })
-    }
-
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
-    if (!apiKey) return
-
-    if (window.google?.maps) { init(); return }
-
-    window.initGooglePlacesLoc = init
-    if (!document.querySelector('script[data-gmaps]')) {
-      const s = document.createElement('script')
-      s.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGooglePlacesLoc`
-      s.async = true
-      s.dataset.gmaps = '1'
-      document.head.appendChild(s)
-    }
-  }, [])
-
-  return (
-    <input
-      ref={inputRef}
-      type="text"
-      placeholder="123 Main St, City, State"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className={inputClass}
-    />
-  )
-}
 
 function LocationRow({
   location,
@@ -165,6 +105,7 @@ function LocationRow({
             value={form.address}
             onChange={(v) => setForm((s) => ({ ...s, address: v }))}
             onSelect={(d) => setForm((s) => ({ ...s, ...d }))}
+            className={inputClass}
           />
         </div>
         <div className="flex gap-2">
@@ -383,6 +324,7 @@ export function LocationsClient({ initialLocations, outOfAreaBehavior: initialBe
                 value={newForm.address}
                 onChange={(v) => setNewForm((s) => ({ ...s, address: v, lat: 0, lng: 0 }))}
                 onSelect={(d) => setNewForm((s) => ({ ...s, ...d }))}
+                className={inputClass}
               />
               {newForm.address && !newForm.lat && (
                 <p className="text-[11px] text-orange-600 font-semibold">Select an address from the dropdown to confirm coordinates</p>
