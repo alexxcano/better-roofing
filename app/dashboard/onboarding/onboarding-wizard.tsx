@@ -28,7 +28,16 @@ export function OnboardingWizard({ contractorId, companyName, userName }: Onboar
   const [saving, setSaving] = useState(false)
 
   // Step 1: Pricing
-  const [pricePerSquare, setPricePerSquare] = useState('425')
+  const [materials, setMaterials] = useState([
+    { key: 'asphalt', label: 'Asphalt Shingles', emoji: '🏠', hint: 'Most common residential', price: '425', enabled: true },
+    { key: 'metal',   label: 'Metal Roofing',    emoji: '🔩', hint: 'Standing seam, corrugated', price: '750', enabled: true },
+    { key: 'tile',    label: 'Tile Roofing',     emoji: '🏛️', hint: 'Clay, concrete, slate',    price: '650', enabled: true },
+    { key: 'flat',    label: 'Flat / TPO',       emoji: '▱',  hint: 'EPDM, TPO, mod bitumen',   price: '500', enabled: false },
+  ])
+
+  const setMaterialField = (key: string, field: 'price' | 'enabled', value: string | boolean) => {
+    setMaterials((prev) => prev.map((m) => m.key === key ? { ...m, [field]: value } : m))
+  }
 
   // Step 2: Service Area
   const [locationAddress, setLocationAddress] = useState('')
@@ -49,22 +58,24 @@ export function OnboardingWizard({ contractorId, companyName, userName }: Onboar
   // ── Handlers ──────────────────────────────────────────────────────────────
 
   const savePricing = async () => {
-    const price = parseFloat(pricePerSquare) || 425
+    const get = (key: string) => parseFloat(materials.find((m) => m.key === key)?.price || '0') || 0
+    const enabled = (key: string) => materials.find((m) => m.key === key)?.enabled ?? false
+    const asphalt = get('asphalt') || 425
     await fetch('/api/pricing', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        pricePerSquare: price,
-        pricePerSquareAsphalt: price,
-        pricePerSquareMetal: Math.round(price * 1.75),
-        pricePerSquareTile: Math.round(price * 1.5),
-        pricePerSquareFlat: Math.round(price * 1.2),
+        pricePerSquare: asphalt,
+        pricePerSquareAsphalt: asphalt,
+        pricePerSquareMetal: get('metal') || 750,
+        pricePerSquareTile: get('tile') || 650,
+        pricePerSquareFlat: get('flat') || 500,
         wasteFactor: 1.12,
         tearOffCost: 1000,
-        offersAsphalt: true,
-        offersMetal: true,
-        offersTile: true,
-        offersFlat: false,
+        offersAsphalt: enabled('asphalt'),
+        offersMetal: enabled('metal'),
+        offersTile: enabled('tile'),
+        offersFlat: enabled('flat'),
       }),
     })
   }
@@ -276,31 +287,50 @@ export function OnboardingWizard({ contractorId, companyName, userName }: Onboar
             </div>
 
             <div className="px-6 py-6">
-              <p className="text-stone-600 text-sm font-semibold leading-relaxed mb-6">
-                What do you charge to replace an asphalt shingle roof? Enter your price per square (100 sq ft). This is what homeowners will see as their estimate.
+              <p className="text-stone-600 text-sm font-semibold leading-relaxed mb-4">
+                Set your price per square (100 sq ft) for each material type you offer. Toggle off any you don&apos;t install — homeowners won&apos;t see those options.
               </p>
 
-              <div className="space-y-1.5 mb-2">
-                <label className="block text-xs font-black uppercase tracking-widest text-stone-600">
-                  Price per Square — Asphalt Shingles
-                </label>
-                <div className="flex items-center border-2 border-stone-300 bg-white focus-within:border-orange-500 transition-colors">
-                  <span className="px-3 py-3 text-stone-500 font-black text-lg border-r-2 border-stone-300 bg-stone-50">$</span>
-                  <input
-                    type="number"
-                    min="100"
-                    max="2000"
-                    step="5"
-                    value={pricePerSquare}
-                    onChange={(e) => setPricePerSquare(e.target.value)}
-                    className="flex-1 px-3 py-3 text-lg font-bold text-stone-900 focus:outline-none bg-white"
-                    placeholder="425"
-                  />
-                  <span className="px-3 py-3 text-stone-400 text-sm font-semibold border-l-2 border-stone-300 bg-stone-50 whitespace-nowrap">per square</span>
-                </div>
+              <div className="border-2 border-stone-200 divide-y divide-stone-200">
+                {materials.map((mat) => (
+                  <div key={mat.key} className={`grid grid-cols-[1fr_auto] items-center ${mat.enabled ? 'bg-white' : 'bg-stone-50'}`}>
+                    {/* Toggle + label */}
+                    <button
+                      type="button"
+                      onClick={() => setMaterialField(mat.key, 'enabled', !mat.enabled)}
+                      className="flex items-center gap-3 px-4 py-3 text-left w-full"
+                    >
+                      <div className={`h-5 w-9 rounded-full transition-colors flex-shrink-0 flex items-center px-0.5 ${mat.enabled ? 'bg-orange-500' : 'bg-stone-300'}`}>
+                        <div className={`h-4 w-4 rounded-full bg-white shadow transition-transform ${mat.enabled ? 'translate-x-4' : 'translate-x-0'}`} />
+                      </div>
+                      <span className="text-lg leading-none">{mat.emoji}</span>
+                      <div>
+                        <p className={`text-sm font-bold leading-none ${mat.enabled ? 'text-stone-900' : 'text-stone-400'}`}>{mat.label}</p>
+                        <p className="text-xs text-stone-400 mt-0.5">{mat.hint}</p>
+                      </div>
+                    </button>
+                    {/* Price input */}
+                    <div className="px-4 py-3 border-l border-stone-200">
+                      <div className="flex items-center gap-1">
+                        <span className="text-stone-400 text-sm font-semibold">$</span>
+                        <input
+                          type="number"
+                          min="50"
+                          max="3000"
+                          step="5"
+                          value={mat.price}
+                          onChange={(e) => setMaterialField(mat.key, 'price', e.target.value)}
+                          disabled={!mat.enabled}
+                          className={`w-20 border-2 border-stone-300 bg-white text-stone-900 text-sm font-bold px-2 py-1.5 focus:outline-none focus:border-orange-500 ${!mat.enabled ? 'opacity-40 cursor-not-allowed' : ''}`}
+                        />
+                        <span className="text-stone-400 text-xs font-semibold whitespace-nowrap">/sq</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <p className="text-xs text-stone-400 font-semibold">
-                Most roofers charge between $350–$600. Metal, tile, and flat pricing can be adjusted in Settings.
+              <p className="text-xs text-stone-400 font-semibold mt-2">
+                Waste factor and tear-off cost can be adjusted in Settings anytime.
               </p>
             </div>
 
