@@ -4,7 +4,6 @@ import { redirect } from 'next/navigation'
 import { StatsCards } from '@/components/dashboard/StatsCards'
 import { WeeklyReportCard } from '@/components/dashboard/WeeklyReportCard'
 import { LeadScoreBadge } from '@/components/dashboard/LeadScoreBadge'
-import { SetupChecklist } from '@/components/dashboard/SetupChecklist'
 import Link from 'next/link'
 
 export default async function DashboardPage() {
@@ -14,7 +13,7 @@ export default async function DashboardPage() {
   const contractorId = session.user.contractorId
   const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
 
-  const [totalLeads, leadsThisMonth, hotLeads, estimateAgg, recentLeads, latestReport, subscription, contractor, locationCount, pricing] = await Promise.all([
+  const [totalLeads, leadsThisMonth, hotLeads, estimateAgg, recentLeads, latestReport, subscription, contractor] = await Promise.all([
     prisma.lead.count({ where: { contractorId } }),
     prisma.lead.count({ where: { contractorId, createdAt: { gte: startOfMonth } } }),
     prisma.lead.count({ where: { contractorId, leadScore: { gte: 8 } } }),
@@ -48,11 +47,6 @@ export default async function DashboardPage() {
     prisma.contractor.findUnique({
       where: { id: contractorId },
       select: { notificationEmail: true, onboardingCompleted: true },
-    }),
-    prisma.location.count({ where: { contractorId } }),
-    prisma.pricingSettings.findUnique({
-      where: { contractorId },
-      select: { pricePerSquare: true, wasteFactor: true, tearOffCost: true },
     }),
   ])
 
@@ -95,13 +89,6 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* Setup checklist — hidden once all steps done */}
-      <SetupChecklist
-        pricingCustomized={!!pricing && (pricing.pricePerSquare !== 425 || pricing.wasteFactor !== 1.12 || pricing.tearOffCost !== 1000)}
-        locationSet={locationCount > 0}
-        widgetInstalled={totalLeads > 0}
-        notificationSet={!!contractor?.notificationEmail}
-      />
 
       {/* Page header */}
       <div className="border-l-4 border-orange-500 pl-4">
