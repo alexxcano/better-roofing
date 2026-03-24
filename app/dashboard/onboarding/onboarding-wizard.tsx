@@ -404,6 +404,7 @@ export function OnboardingWizard({ contractorId, companyName, userName }: Onboar
                     contractorId={contractorId}
                   />
                   <p className="text-xs text-stone-400 font-semibold">Use your shop address or the center of your service area.</p>
+                  <p className="text-xs text-stone-400 font-semibold mt-1">You can add multiple service areas and adjust your radius in Locations anytime.</p>
                 </div>
 
                 <div className="space-y-1.5">
@@ -524,7 +525,7 @@ export function OnboardingWizard({ contractorId, companyName, userName }: Onboar
                     className={`${inputClass} px-3 py-2.5 text-sm`}
                   />
                   <p className="text-xs text-stone-400 font-semibold">
-                    You&apos;ll get an email the moment a homeowner requests a quote. No email = no alerts.
+                    You&apos;ll get an email the moment a homeowner requests a quote. No email = no alerts. You can update this in Settings anytime.
                   </p>
                 </div>
               </div>
