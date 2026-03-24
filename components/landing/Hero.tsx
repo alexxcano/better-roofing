@@ -4,7 +4,7 @@ import { ArrowRight, HardHat, Mail, MessageSquare, Sparkles, Zap } from 'lucide-
 export function Hero() {
   return (
     <section className="relative bg-stone-50 bg-corrugated overflow-hidden border-b-2 border-stone-200">
-      <div className="container max-w-6xl mx-auto px-4 pt-20 pb-24">
+      <div className="container max-w-6xl mx-auto px-4 pt-10 pb-24">
         <div className="grid md:grid-cols-2 gap-16 items-center">
 
           {/* Left */}
