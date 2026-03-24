@@ -45,21 +45,12 @@ export const metadata: Metadata = {
     title: 'BetterRoofing — Instant Roof Quote Widget for Contractors',
     description:
       'Add an instant roofing estimate widget to your website in 60 seconds. Capture more leads, score them automatically, and get AI-written follow-ups.',
-    images: [
-      {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'BetterRoofing — Instant Roof Quote Widget',
-      },
-    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'BetterRoofing — Instant Roof Quote Widget for Contractors',
     description:
       'Add an instant roofing estimate widget to your website in 60 seconds. Capture more leads, score them automatically, and get AI-written follow-ups.',
-    images: ['/og-image.png'],
   },
   robots: {
     index: true,
