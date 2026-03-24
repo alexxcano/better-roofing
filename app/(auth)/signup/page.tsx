@@ -52,7 +52,7 @@ export default function SignupPage() {
       toast({ title: 'Auto-login failed', description: 'Please log in manually', variant: 'destructive' })
       router.push('/login')
     } else {
-      router.push('/dashboard')
+      router.push('/dashboard/onboarding')
     }
   }
 

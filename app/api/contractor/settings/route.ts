@@ -8,6 +8,7 @@ const settingsSchema = z.object({
   webhookUrl: z.union([z.string().url(), z.literal('')]).optional(),
   bookingUrl: z.union([z.string().url(), z.literal('')]).optional(),
   outOfAreaBehavior: z.enum(['GATE', 'FLAG']).optional(),
+  onboardingCompleted: z.boolean().optional(),
 })
 
 export async function GET() {
@@ -18,7 +19,7 @@ export async function GET() {
 
   const contractor = await prisma.contractor.findUnique({
     where: { id: session.user.contractorId },
-    select: { notificationEmail: true, webhookUrl: true, bookingUrl: true, outOfAreaBehavior: true },
+    select: { notificationEmail: true, webhookUrl: true, bookingUrl: true, outOfAreaBehavior: true, onboardingCompleted: true },
   })
 
   return NextResponse.json(contractor ?? {
@@ -26,6 +27,7 @@ export async function GET() {
     webhookUrl: null,
     bookingUrl: null,
     outOfAreaBehavior: 'FLAG',
+    onboardingCompleted: false,
   })
 }
 
@@ -49,8 +51,9 @@ export async function PUT(req: NextRequest) {
       webhookUrl: parsed.data.webhookUrl ?? undefined,
       bookingUrl: parsed.data.bookingUrl ?? undefined,
       outOfAreaBehavior: parsed.data.outOfAreaBehavior ?? undefined,
+      onboardingCompleted: parsed.data.onboardingCompleted ?? undefined,
     },
-    select: { notificationEmail: true, webhookUrl: true, bookingUrl: true, outOfAreaBehavior: true },
+    select: { notificationEmail: true, webhookUrl: true, bookingUrl: true, outOfAreaBehavior: true, onboardingCompleted: true },
   })
 
   return NextResponse.json(contractor)

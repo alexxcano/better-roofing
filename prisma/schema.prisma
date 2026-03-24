@@ -86,9 +86,10 @@ model Contractor {
   notificationEmail String?
   webhookUrl        String?
   bookingUrl        String?
-  outOfAreaBehavior OutOfAreaBehavior @default(FLAG)
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  outOfAreaBehavior  OutOfAreaBehavior @default(FLAG)
+  onboardingCompleted Boolean         @default(false)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
 
   users           User[]
   leads           Lead[]

@@ -47,7 +47,7 @@ export default async function DashboardPage() {
     }),
     prisma.contractor.findUnique({
       where: { id: contractorId },
-      select: { notificationEmail: true },
+      select: { notificationEmail: true, onboardingCompleted: true },
     }),
     prisma.location.count({ where: { contractorId } }),
     prisma.pricingSettings.findUnique({
@@ -55,6 +55,11 @@ export default async function DashboardPage() {
       select: { pricePerSquare: true, wasteFactor: true, tearOffCost: true },
     }),
   ])
+
+  // Redirect to onboarding if not completed (guard with totalLeads so existing users aren't affected)
+  if (!contractor?.onboardingCompleted && totalLeads === 0) {
+    redirect('/dashboard/onboarding')
+  }
 
   const avgEstimate = estimateAgg._avg.estimateLow && estimateAgg._avg.estimateHigh
     ? (estimateAgg._avg.estimateLow + estimateAgg._avg.estimateHigh) / 2
