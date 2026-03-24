@@ -1,6 +1,14 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Navbar } from '@/components/landing/Navbar'
 import { Footer } from '@/components/landing/Footer'
+
+export const metadata: Metadata = {
+  title: 'Documentation — How to Install & Use BetterRoofing',
+  description:
+    'Step-by-step guides for installing the BetterRoofing quote widget on your roofing website. Works with WordPress, Squarespace, Wix, and any custom site.',
+  alternates: { canonical: 'https://betterroofing.co/docs' },
+}
 
 const NAV = [
   { href: '#quick-start',     label: 'Quick Start' },

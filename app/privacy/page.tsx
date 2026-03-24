@@ -1,5 +1,13 @@
+import type { Metadata } from 'next'
 import { Navbar } from '@/components/landing/Navbar'
 import { Footer } from '@/components/landing/Footer'
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy',
+  description: 'Privacy policy for BetterRoofing — how we collect, use, and protect your data.',
+  alternates: { canonical: 'https://betterroofing.co/privacy' },
+  robots: { index: false },
+}
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (

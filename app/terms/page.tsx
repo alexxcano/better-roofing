@@ -1,5 +1,13 @@
+import type { Metadata } from 'next'
 import { Navbar } from '@/components/landing/Navbar'
 import { Footer } from '@/components/landing/Footer'
+
+export const metadata: Metadata = {
+  title: 'Terms of Service',
+  description: 'Terms of service for BetterRoofing.',
+  alternates: { canonical: 'https://betterroofing.co/terms' },
+  robots: { index: false },
+}
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
