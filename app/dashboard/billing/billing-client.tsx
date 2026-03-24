@@ -161,7 +161,7 @@ export function BillingClient({ subscription, daysLeftInTrial, locationCount }: 
       )}
 
       {/* Cancel plan */}
-      {isActive && (
+      {isActive && daysLeftInTrial === null && (
         <div className="border-2 border-stone-200 bg-white">
           <div className="px-5 py-3 bg-stone-50 border-b border-stone-200">
             <p className="text-xs font-black uppercase tracking-widest text-stone-500">Cancel Subscription</p>
