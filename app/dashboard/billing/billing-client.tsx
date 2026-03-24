@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useToast } from '@/components/ui/use-toast'
 import { PLANS } from '@/lib/stripe'
 import { PlanComparisonTable } from '@/components/shared/PlanComparisonTable'
 import type { Subscription } from '@prisma/client'
@@ -12,6 +13,7 @@ interface BillingClientProps {
 }
 
 export function BillingClient({ subscription, daysLeftInTrial, locationCount }: BillingClientProps) {
+  const { toast } = useToast()
   const [loading, setLoading] = useState<string | null>(null)
   const [confirmCancel, setConfirmCancel] = useState(false)
   const [confirmStarterDowngrade, setConfirmStarterDowngrade] = useState(false)
@@ -32,16 +34,24 @@ export function BillingClient({ subscription, daysLeftInTrial, locationCount }: 
       body: JSON.stringify({ plan }),
     })
     const data = await res.json()
-    if (data.url) window.location.href = data.url
-    setLoading(null)
+    if (data.url) {
+      window.location.href = data.url
+    } else {
+      toast({ title: 'Something went wrong', description: data.error || 'Could not start checkout.', variant: 'destructive' })
+      setLoading(null)
+    }
   }
 
   const handlePortal = async () => {
     setLoading('portal')
     const res = await fetch('/api/stripe/portal', { method: 'POST' })
     const data = await res.json()
-    if (data.url) window.location.href = data.url
-    setLoading(null)
+    if (data.url) {
+      window.location.href = data.url
+    } else {
+      toast({ title: 'Something went wrong', description: data.error || 'Could not open billing portal.', variant: 'destructive' })
+      setLoading(null)
+    }
   }
 
   const isActive = subscription?.status === 'active' || subscription?.status === 'trialing'

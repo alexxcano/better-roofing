@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, MapPin, DollarSign, Globe, Mail, ChevronDown, Copy } from 'lucide-react'
+import { MapPin, DollarSign, Globe, Mail, ChevronDown, Copy, Check } from 'lucide-react'
+import { useToast } from '@/components/ui/use-toast'
 import { AddressAutocomplete } from '@/components/shared/AddressAutocomplete'
 
 interface OnboardingWizardProps {
@@ -24,6 +25,7 @@ const inputClass =
 
 export function OnboardingWizard({ contractorId, companyName, userName }: OnboardingWizardProps) {
   const router = useRouter()
+  const { toast } = useToast()
   const [step, setStep] = useState<Step>(0)
   const [saving, setSaving] = useState(false)
 
@@ -57,11 +59,11 @@ export function OnboardingWizard({ contractorId, companyName, userName }: Onboar
 
   // ── Handlers ──────────────────────────────────────────────────────────────
 
-  const savePricing = async () => {
+  const savePricing = async (): Promise<boolean> => {
     const get = (key: string) => parseFloat(materials.find((m) => m.key === key)?.price || '0') || 0
     const enabled = (key: string) => materials.find((m) => m.key === key)?.enabled ?? false
     const asphalt = get('asphalt') || 425
-    await fetch('/api/pricing', {
+    const res = await fetch('/api/pricing', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -78,11 +80,12 @@ export function OnboardingWizard({ contractorId, companyName, userName }: Onboar
         offersFlat: enabled('flat'),
       }),
     })
+    return res.ok
   }
 
-  const saveLocation = async () => {
-    if (!locationGeo) return
-    await fetch('/api/locations', {
+  const saveLocation = async (): Promise<boolean> => {
+    if (!locationGeo) return true
+    const res = await fetch('/api/locations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -93,11 +96,12 @@ export function OnboardingWizard({ contractorId, companyName, userName }: Onboar
         serviceRadiusMiles: parseFloat(serviceRadius),
       }),
     })
+    return res.ok
   }
 
   const completeOnboarding = async () => {
     setSaving(true)
-    await fetch('/api/contractor/settings', {
+    const res = await fetch('/api/contractor/settings', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -106,19 +110,37 @@ export function OnboardingWizard({ contractorId, companyName, userName }: Onboar
       }),
     })
     setSaving(false)
+    if (!res.ok) {
+      toast({ title: 'Something went wrong', description: 'Please try again.', variant: 'destructive' })
+      return
+    }
     setStep(4)
   }
 
   const handleStep1Next = async (skip = false) => {
     setSaving(true)
-    if (!skip) await savePricing()
+    if (!skip) {
+      const ok = await savePricing()
+      if (!ok) {
+        setSaving(false)
+        toast({ title: 'Could not save pricing', description: 'Please try again.', variant: 'destructive' })
+        return
+      }
+    }
     setSaving(false)
     setStep(2)
   }
 
   const handleStep2Next = async (skip = false) => {
     setSaving(true)
-    if (!skip && locationGeo) await saveLocation()
+    if (!skip && locationGeo) {
+      const ok = await saveLocation()
+      if (!ok) {
+        setSaving(false)
+        toast({ title: 'Could not save location', description: 'Please try again.', variant: 'destructive' })
+        return
+      }
+    }
     setSaving(false)
     setStep(3)
   }
