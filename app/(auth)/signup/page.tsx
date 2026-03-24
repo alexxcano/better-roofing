@@ -68,7 +68,7 @@ export default function SignupPage() {
         {/* Google */}
         <button
           type="button"
-          onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
+          onClick={() => signIn('google', { callbackUrl: '/dashboard/onboarding' })}
           className="btn btn-ghost w-full py-2.5"
         >
           <svg className="h-4 w-4" viewBox="0 0 24 24">
