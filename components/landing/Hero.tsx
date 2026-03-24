@@ -17,13 +17,13 @@ export function Hero() {
             </div>
 
             <h1 className="font-barlow font-black text-6xl md:text-7xl lg:text-[82px] leading-none tracking-tight uppercase text-stone-900 mb-6">
-              Stop Losing Jobs<br />
+              Stop Losing Roofing Jobs<br />
               <span className="text-orange-500">You Never</span><br />
               Knew About
             </h1>
 
             <p className="text-stone-600 text-xl leading-relaxed mb-10 max-w-md">
-              Add a 60-second quote widget to your site. Homeowners get an instant estimate — you get a scored, AI-briefed lead with a follow-up already written.
+              Add a quote widget to your site. Homeowners get an instant estimate 24/7 — even when you&apos;re off the clock. You get a scored lead with AI follow-up already written.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 mb-8">

@@ -57,7 +57,7 @@ export default async function OgImage() {
           flexDirection: 'column',
           fontFamily: 'Barlow Condensed',
         }}>
-          <span>Stop Losing Jobs</span>
+          <span>Stop Losing Roofing Jobs</span>
           <span style={{ color: '#f97316' }}>You Never Knew About</span>
         </div>
 
