@@ -28,23 +28,28 @@
 
   var css = [
     '@keyframes br-pulse {',
-    '  0%, 100% { box-shadow: 4px 0 0 0 rgba(249,115,22,0.5); }',
-    '  50%       { box-shadow: 8px 0 0 8px rgba(249,115,22,0); }',
+    isLeft
+      ? '  0%, 100% { box-shadow: -4px 0 0 0 rgba(249,115,22,0.5); }'
+      : '  0%, 100% { box-shadow: 4px 0 0 0 rgba(249,115,22,0.5); }',
+    isLeft
+      ? '  50%       { box-shadow: -8px 0 0 8px rgba(249,115,22,0); }'
+      : '  50%       { box-shadow: 8px 0 0 8px rgba(249,115,22,0); }',
     '}',
 
     '#br-tab {',
     '  position: fixed;',
     '  top: 50%;',
+    '  transform: translateY(-50%);',
     isLeft ? '  left: 0;' : '  right: 0;',
-    '  transform: translateY(-50%) rotate(' + (isLeft ? '-90' : '90') + 'deg);',
-    '  transform-origin: ' + (isLeft ? 'left' : 'right') + ' center;',
+    '  writing-mode: ' + (isLeft ? 'vertical-lr;' : 'vertical-rl;'),
+    isLeft ? '  rotate: 180deg;' : '',
     '  background: #f97316;',
     '  color: #fff;',
     '  font: 700 13px/1 system-ui, -apple-system, sans-serif;',
     '  letter-spacing: 0.08em;',
     '  text-transform: uppercase;',
-    '  padding: 12px 20px;',
-    '  border-radius: 0 0 6px 6px;',
+    '  padding: 20px 12px;',
+    '  border-radius: ' + (isLeft ? '0 6px 6px 0;' : '6px 0 0 6px;'),
     '  z-index: 2147483646;',
     '  cursor: pointer;',
     '  transition: opacity 0.2s ease;',
