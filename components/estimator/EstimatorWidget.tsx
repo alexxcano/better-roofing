@@ -289,6 +289,7 @@ export function EstimatorWidget({
 
                   {step === 2 && (
                     <StepAddress
+                      contractorId={contractorId}
                       address={data.address}
                       lat={data.lat}
                       lng={data.lng}

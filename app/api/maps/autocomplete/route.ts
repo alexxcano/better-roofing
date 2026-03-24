@@ -1,6 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
 
 export async function GET(req: NextRequest) {
+  // Allow widget calls (contractorId param) or authenticated dashboard calls
+  const contractorId = req.nextUrl.searchParams.get('contractorId')
+  const session = await auth()
+
+  if (contractorId) {
+    const contractor = await prisma.contractor.findUnique({ where: { id: contractorId }, select: { id: true } })
+    if (!contractor) return NextResponse.json({ predictions: [] }, { status: 401 })
+  } else if (!session?.user?.contractorId) {
+    return NextResponse.json({ predictions: [] }, { status: 401 })
+  }
+
   const input = req.nextUrl.searchParams.get('input')
   if (!input?.trim()) return NextResponse.json({ predictions: [] })
 

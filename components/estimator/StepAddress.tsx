@@ -7,6 +7,7 @@ import type { ServiceLocation } from '@/lib/serviceArea'
 import { AddressAutocomplete } from '@/components/shared/AddressAutocomplete'
 
 interface StepAddressProps {
+  contractorId: string
   address: string
   lat: number | null
   lng: number | null
@@ -27,7 +28,7 @@ interface StepAddressProps {
 const inputClass =
   'w-full border-2 border-stone-200 bg-white px-3 py-3.5 text-[0.9375rem] text-stone-900 placeholder:text-stone-400 outline-none focus:border-orange-500 transition-colors'
 
-export function StepAddress({ address: initialAddress, locations, onComplete }: StepAddressProps) {
+export function StepAddress({ contractorId, address: initialAddress, locations, onComplete }: StepAddressProps) {
   const [address, setAddress] = useState(initialAddress)
   const [lat, setLat] = useState<number | null>(null)
   const [lng, setLng] = useState<number | null>(null)
@@ -101,6 +102,7 @@ export function StepAddress({ address: initialAddress, locations, onComplete }: 
           onSelect={handleSelect}
           placeholder="123 Main St, Austin, TX"
           className={inputClass}
+          contractorId={contractorId}
         />
       </div>
 

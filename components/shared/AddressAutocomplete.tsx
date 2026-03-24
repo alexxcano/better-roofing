@@ -13,6 +13,7 @@ interface AddressAutocompleteProps {
   onSelect: (data: { address: string; lat: number; lng: number }) => void
   placeholder?: string
   className?: string
+  contractorId?: string
 }
 
 export function AddressAutocomplete({
@@ -21,6 +22,7 @@ export function AddressAutocomplete({
   onSelect,
   placeholder = '123 Main St, City, State',
   className,
+  contractorId,
 }: AddressAutocompleteProps) {
   const [predictions, setPredictions] = useState<Prediction[]>([])
   const [open, setOpen] = useState(false)
@@ -43,7 +45,9 @@ export function AddressAutocomplete({
     if (!v.trim()) { setPredictions([]); setOpen(false); return }
     debounceRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/maps/autocomplete?input=${encodeURIComponent(v)}`)
+        const params = new URLSearchParams({ input: v })
+        if (contractorId) params.set('contractorId', contractorId)
+        const res = await fetch(`/api/maps/autocomplete?${params}`)
         if (!res.ok) return
         const data = await res.json()
         setPredictions(data.predictions ?? [])
@@ -56,7 +60,9 @@ export function AddressAutocomplete({
     setOpen(false)
     onChange(p.description)
     try {
-      const res = await fetch(`/api/maps/place?place_id=${encodeURIComponent(p.place_id)}`)
+      const params = new URLSearchParams({ place_id: p.place_id })
+      if (contractorId) params.set('contractorId', contractorId)
+      const res = await fetch(`/api/maps/place?${params}`)
       if (!res.ok) return
       const data = await res.json()
       onSelect({ address: data.address, lat: data.lat, lng: data.lng })

@@ -6,6 +6,47 @@ import { calculateLeadScore } from '@/lib/leadScore'
 import { checkServiceArea } from '@/lib/serviceArea'
 import { generateLeadDrafts } from '@/lib/generateLeadEmail'
 import { z } from 'zod'
+import dns from 'dns'
+
+async function isSafeWebhookUrl(url: string): Promise<boolean> {
+  try {
+    const parsed = new URL(url)
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return false
+
+    const { address, family } = await dns.promises.lookup(parsed.hostname)
+
+    if (family === 4) {
+      const [a, b] = address.split('.').map(Number)
+      if (a === 127) return false                              // loopback
+      if (a === 10) return false                              // 10.0.0.0/8
+      if (a === 172 && b >= 16 && b <= 31) return false      // 172.16.0.0/12
+      if (a === 192 && b === 168) return false                // 192.168.0.0/16
+      if (a === 169 && b === 254) return false                // link-local / metadata
+      if (a === 0) return false                               // 0.0.0.0
+    }
+
+    if (family === 6) {
+      const lower = address.toLowerCase()
+      if (lower === '::1') return false                       // loopback
+      if (lower.startsWith('fc') || lower.startsWith('fd')) return false  // fc00::/7 ULA
+      if (lower.startsWith('fe8') || lower.startsWith('fe9') ||
+          lower.startsWith('fea') || lower.startsWith('feb')) return false // link-local
+      // IPv4-mapped e.g. ::ffff:127.0.0.1
+      if (lower.startsWith('::ffff:')) {
+        const ipv4 = lower.slice(7)
+        const [a, b] = ipv4.split('.').map(Number)
+        if (a === 127 || a === 10 || a === 0) return false
+        if (a === 172 && b >= 16 && b <= 31) return false
+        if (a === 192 && b === 168) return false
+        if (a === 169 && b === 254) return false
+      }
+    }
+
+    return true
+  } catch {
+    return false
+  }
+}
 
 const createLeadSchema = z.object({
   contractorId: z.string(),
@@ -120,11 +161,14 @@ export async function POST(req: NextRequest) {
       void sendLeadNotification({ lead, toEmail: contractor.notificationEmail, companyName: contractor.companyName })
     }
     if (contractor.webhookUrl) {
-      void fetch(contractor.webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(lead),
-      }).catch((err) => console.error('[Webhook] Delivery failed:', err))
+      void isSafeWebhookUrl(contractor.webhookUrl).then((safe) => {
+        if (!safe) { console.warn('[Webhook] Blocked unsafe URL:', contractor.webhookUrl); return }
+        return fetch(contractor.webhookUrl!, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(lead),
+        }).catch((err) => console.error('[Webhook] Delivery failed:', err))
+      })
     }
 
     // Generate AI brief + follow-up drafts (Pro feature — fire and forget)
