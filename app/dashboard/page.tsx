@@ -14,7 +14,7 @@ export default async function DashboardPage() {
   const contractorId = session.user.contractorId
   const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
 
-  const [totalLeads, leadsThisMonth, hotLeads, estimateAgg, recentLeads, latestReport, subscription, contractor] = await Promise.all([
+  const [totalLeads, leadsThisMonth, hotLeads, estimateAgg, recentLeads, latestReport, subscription, contractor, locationCount, pricing] = await Promise.all([
     prisma.lead.count({ where: { contractorId } }),
     prisma.lead.count({ where: { contractorId, createdAt: { gte: startOfMonth } } }),
     prisma.lead.count({ where: { contractorId, leadScore: { gte: 8 } } }),
@@ -48,6 +48,11 @@ export default async function DashboardPage() {
     prisma.contractor.findUnique({
       where: { id: contractorId },
       select: { notificationEmail: true },
+    }),
+    prisma.location.count({ where: { contractorId } }),
+    prisma.pricingSettings.findUnique({
+      where: { contractorId },
+      select: { pricePerSquare: true, wasteFactor: true, tearOffCost: true },
     }),
   ])
 
@@ -87,6 +92,8 @@ export default async function DashboardPage() {
 
       {/* Setup checklist — hidden once all steps done */}
       <SetupChecklist
+        pricingCustomized={!!pricing && (pricing.pricePerSquare !== 425 || pricing.wasteFactor !== 1.12 || pricing.tearOffCost !== 1000)}
+        locationSet={locationCount > 0}
         widgetInstalled={totalLeads > 0}
         notificationSet={!!contractor?.notificationEmail}
       />
