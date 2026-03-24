@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useToast } from '@/components/ui/use-toast'
 import { Copy, Check, Mail, ChevronDown, ChevronUp } from 'lucide-react'
 
@@ -15,6 +15,8 @@ export function InstallClient({ contractorId, isPro }: InstallClientProps) {
   const [tabCopied, setTabCopied] = useState(false)
   const [showEmbedCode, setShowEmbedCode] = useState(false)
   const [showTabCode, setShowTabCode] = useState(false)
+  const embedCodeRef = useRef<HTMLDivElement>(null)
+  const tabCodeRef = useRef<HTMLDivElement>(null)
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://yourdomain.com'
 
@@ -96,12 +98,16 @@ export function InstallClient({ contractorId, isPro }: InstallClientProps) {
                 <Mail className="h-4 w-4" />
                 Email My Developer
               </button>
-              <button onClick={() => setShowEmbedCode(v => !v)} className="btn btn-ghost w-full py-2.5">
+              <button onClick={() => {
+                const next = !showEmbedCode
+                setShowEmbedCode(next)
+                if (next) setTimeout(() => embedCodeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50)
+              }} className="btn btn-ghost w-full py-2.5">
                 {showEmbedCode ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                 {showEmbedCode ? 'Hide Code' : 'Install It Myself'}
               </button>
               {showEmbedCode && (
-                <div className="space-y-2">
+                <div ref={embedCodeRef} className="space-y-2">
                   <pre className="bg-stone-950 text-stone-100 p-3 text-xs overflow-x-auto leading-relaxed font-mono">
                     {scriptTag}
                   </pre>
@@ -132,12 +138,16 @@ export function InstallClient({ contractorId, isPro }: InstallClientProps) {
                 <Mail className="h-4 w-4" />
                 Email My Developer
               </button>
-              <button onClick={() => setShowTabCode(v => !v)} className="btn btn-ghost w-full py-2.5">
+              <button onClick={() => {
+                const next = !showTabCode
+                setShowTabCode(next)
+                if (next) setTimeout(() => tabCodeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50)
+              }} className="btn btn-ghost w-full py-2.5">
                 {showTabCode ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                 {showTabCode ? 'Hide Code' : 'Install It Myself'}
               </button>
               {showTabCode && (
-                <div className="space-y-2">
+                <div ref={tabCodeRef} className="space-y-2">
                   <pre className="bg-stone-950 text-stone-100 p-3 text-xs overflow-x-auto leading-relaxed font-mono">
                     {tabScriptTag}
                   </pre>
