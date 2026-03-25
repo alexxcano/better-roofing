@@ -12,6 +12,7 @@ export default async function AdminPage() {
         subscription: true,
       },
       orderBy: { createdAt: 'desc' },
+      take: 200,
     }),
   ])
 

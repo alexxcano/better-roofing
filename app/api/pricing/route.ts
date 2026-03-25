@@ -4,13 +4,13 @@ import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 
 const updatePricingSchema = z.object({
-  pricePerSquare: z.number().positive(),
-  pricePerSquareAsphalt: z.number().positive(),
-  pricePerSquareMetal: z.number().positive(),
-  pricePerSquareTile: z.number().positive(),
-  pricePerSquareFlat: z.number().positive(),
+  pricePerSquare: z.number().min(50).max(5000),
+  pricePerSquareAsphalt: z.number().min(50).max(5000),
+  pricePerSquareMetal: z.number().min(50).max(5000),
+  pricePerSquareTile: z.number().min(50).max(5000),
+  pricePerSquareFlat: z.number().min(50).max(5000),
   wasteFactor: z.number().min(1).max(2),
-  tearOffCost: z.number().min(0),
+  tearOffCost: z.number().min(0).max(20000),
   offersAsphalt: z.boolean(),
   offersMetal: z.boolean(),
   offersTile: z.boolean(),

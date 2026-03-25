@@ -5,6 +5,7 @@ import { sendLeadNotification } from '@/lib/resend'
 import { calculateLeadScore } from '@/lib/leadScore'
 import { checkServiceArea } from '@/lib/serviceArea'
 import { generateLeadDrafts } from '@/lib/generateLeadEmail'
+import { leadsRatelimit } from '@/lib/ratelimit'
 import { z } from 'zod'
 import dns from 'dns'
 
@@ -82,6 +83,12 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'anonymous'
+    const { success } = await leadsRatelimit.limit(ip)
+    if (!success) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+    }
+
     const body = await req.json()
     const parsed = createLeadSchema.safeParse(body)
 
@@ -167,6 +174,7 @@ export async function POST(req: NextRequest) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(lead),
+          signal: AbortSignal.timeout(5000),
         }).catch((err) => console.error('[Webhook] Delivery failed:', err))
       })
     }

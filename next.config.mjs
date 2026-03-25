@@ -27,6 +27,24 @@ const nextConfig = {
   },
   async headers() {
     return [
+      // Security headers for all routes
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-DNS-Prefetch-Control', value: 'on' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(self)' },
+        ],
+      },
+      // Dashboard/app pages — block framing
+      {
+        source: '/((?!embed).*)',
+        headers: [
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+        ],
+      },
+      // Embed routes — allow framing from any origin (widget iframe)
       {
         source: '/embed/:path*',
         headers: [

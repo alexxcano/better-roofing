@@ -39,6 +39,7 @@ export async function GET() {
   const leads = await prisma.lead.findMany({
     where: { contractorId: session.user.contractorId },
     orderBy: { createdAt: 'desc' },
+    take: 10000,
   })
 
   const headers = [

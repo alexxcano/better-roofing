@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
       const solarUrl = `https://solar.googleapis.com/v1/buildingInsights:findClosest?location.latitude=${lat}&location.longitude=${lng}&requiredQuality=LOW&key=${solarKey}`
       const solarRes = await fetch(solarUrl, {
         cache: 'no-store',
-        signal: AbortSignal.timeout(8000),
+        signal: AbortSignal.timeout(5000),
       })
 
       if (solarRes.ok) {
@@ -81,7 +81,7 @@ export async function GET(req: NextRequest) {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: `data=${encodeURIComponent(query)}`,
       cache: 'no-store',
-      signal: AbortSignal.timeout(8000),
+      signal: AbortSignal.timeout(5000),
     })
 
     if (!res.ok) return NextResponse.json({ sqft: null, slope: null, solarMeasured: false })
