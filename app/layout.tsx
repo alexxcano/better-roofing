@@ -15,7 +15,7 @@ const APP_URL = 'https://betterroofing.co'
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: {
-    default: 'BetterRoofing — Instant Roof Quote Widget for Contractors',
+    default: 'BetterRoofing | Instant Quote Widget for Roofers',
     template: '%s | BetterRoofing',
   },
   description:
@@ -42,15 +42,19 @@ export const metadata: Metadata = {
     type: 'website',
     url: APP_URL,
     siteName: 'BetterRoofing',
-    title: 'BetterRoofing — Instant Roof Quote Widget for Contractors',
+    title: 'BetterRoofing | Instant Quote Widget for Roofers',
     description:
       'Add an instant roofing estimate widget to your website in 60 seconds. Capture more leads, score them automatically, and get AI-written follow-ups.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'BetterRoofing — Instant Roof Quote Widget for Contractors',
+    title: 'BetterRoofing | Instant Quote Widget for Roofers',
     description:
       'Add an instant roofing estimate widget to your website in 60 seconds. Capture more leads, score them automatically, and get AI-written follow-ups.',
+  },
+  icons: {
+    icon: '/Logo-nobg.png',
+    apple: '/Logo-nobg.png',
   },
   robots: {
     index: true,
