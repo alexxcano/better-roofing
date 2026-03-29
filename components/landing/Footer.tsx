@@ -62,6 +62,8 @@ export function Footer() {
             <p className="text-xs text-stone-600 font-black uppercase tracking-widest mb-4">Resources</p>
             <ul className="space-y-2.5">
               <li><Link href="/docs" className="text-sm text-stone-500 hover:text-stone-300 font-medium transition-colors">Docs</Link></li>
+              <li><Link href="/vs-roofle" className="text-sm text-stone-500 hover:text-stone-300 font-medium transition-colors">BetterRoofing vs Roofle</Link></li>
+              <li><Link href="/vs-demandiq" className="text-sm text-stone-500 hover:text-stone-300 font-medium transition-colors">BetterRoofing vs Demand IQ</Link></li>
               <li><Link href="/privacy" className="text-sm text-stone-500 hover:text-stone-300 font-medium transition-colors">Privacy Policy</Link></li>
               <li><Link href="/terms" className="text-sm text-stone-500 hover:text-stone-300 font-medium transition-colors">Terms of Service</Link></li>
             </ul>

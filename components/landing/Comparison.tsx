@@ -111,10 +111,12 @@ export function Comparison() {
               <div className="px-3 py-4 text-center border-r border-stone-200 bg-stone-50">
                 <p className="font-barlow font-bold text-sm text-stone-500 uppercase tracking-wider leading-none">Roofle</p>
                 <p className="text-stone-400 text-[10px] font-semibold mt-1">$350/mo + $2k</p>
+                <Link href="/vs-roofle" className="text-[10px] text-orange-500 hover:text-orange-400 font-bold uppercase tracking-widest mt-1 block transition-colors">Full comparison →</Link>
               </div>
               <div className="px-3 py-4 text-center bg-stone-50">
                 <p className="font-barlow font-bold text-sm text-stone-500 uppercase tracking-wider leading-none">Demand IQ</p>
                 <p className="text-stone-400 text-[10px] font-semibold mt-1">$300/mo + $1.5k</p>
+                <Link href="/vs-demandiq" className="text-[10px] text-orange-500 hover:text-orange-400 font-bold uppercase tracking-widest mt-1 block transition-colors">Full comparison →</Link>
               </div>
             </div>
 
