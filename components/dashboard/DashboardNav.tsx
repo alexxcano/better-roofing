@@ -20,6 +20,7 @@ import {
   LifeBuoy,
   BookOpen,
 } from 'lucide-react'
+import { SupportDialog } from './SupportDialog'
 
 const navItems: { href: string; label: string; icon: React.ElementType; external?: boolean }[] = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
@@ -30,9 +31,10 @@ const navItems: { href: string; label: string; icon: React.ElementType; external
   { href: '/dashboard/install', label: 'Install Widget', icon: Code2 },
 ]
 
-export function DashboardNav({ companyName, userEmail }: { companyName: string; userEmail: string }) {
+export function DashboardNav({ companyName, userEmail, plan }: { companyName: string; userEmail: string; plan: string }) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [supportOpen, setSupportOpen] = useState(false)
 
   const close = () => setMobileOpen(false)
 
@@ -86,16 +88,6 @@ export function DashboardNav({ companyName, userEmail }: { companyName: string; 
     </nav>
   )
 
-  const subject = encodeURIComponent('BetterRoofing Support Request')
-  const body = encodeURIComponent(
-    `Hi BetterRoofing team,\n\n` +
-    `[ Describe your issue or feature request here ]\n\n` +
-    `---\n` +
-    `Account: ${userEmail}\n` +
-    `Company: ${companyName}\n`
-  )
-  const mailtoHref = `mailto:support@betterroofing.com?subject=${subject}&body=${body}`
-
   const signOutBtn = (
     <div className="px-3 py-4 border-t border-stone-800 space-y-0.5">
       <a
@@ -107,14 +99,13 @@ export function DashboardNav({ companyName, userEmail }: { companyName: string; 
         <BookOpen className="h-4 w-4" />
         Docs
       </a>
-      <a
-        href={mailtoHref}
-        onClick={close}
+      <button
+        onClick={() => { close(); setSupportOpen(true) }}
         className="flex items-center gap-3 px-3 py-2.5 w-full text-sm font-semibold uppercase tracking-wide text-stone-500 hover:text-white hover:bg-stone-800 transition-colors"
       >
         <LifeBuoy className="h-4 w-4" />
         Support
-      </a>
+      </button>
       <button
         onClick={() => signOut({ callbackUrl: '/' })}
         className="flex items-center gap-3 px-3 py-2.5 w-full text-sm font-semibold uppercase tracking-wide text-stone-500 hover:text-white hover:bg-stone-800 transition-colors"
@@ -127,6 +118,14 @@ export function DashboardNav({ companyName, userEmail }: { companyName: string; 
 
   return (
     <>
+      <SupportDialog
+        open={supportOpen}
+        onClose={() => setSupportOpen(false)}
+        userEmail={userEmail}
+        companyName={companyName}
+        plan={plan}
+      />
+
       {/* Mobile top bar */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-30 h-14 bg-stone-900 border-b-2 border-orange-500 flex items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2.5">
@@ -159,9 +158,9 @@ export function DashboardNav({ companyName, userEmail }: { companyName: string; 
       <aside
         className={cn(
           'w-60 bg-stone-900 text-white flex flex-col border-r-2 border-orange-500',
-          'fixed md:relative top-0 bottom-0 z-50 transition-transform duration-300',
-          'md:translate-x-0 md:min-h-screen',
-          mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+          'fixed top-0 bottom-0 z-50 transition-transform duration-300',
+          'md:sticky md:h-screen md:translate-x-0 md:flex-shrink-0',
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
         {/* Desktop logo */}

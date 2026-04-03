@@ -10,7 +10,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const contractor = session.user.contractorId
     ? await prisma.contractor.findUnique({
         where: { id: session.user.contractorId },
-        select: { companyName: true },
+        select: { companyName: true, subscription: { select: { plan: true } } },
       })
     : null
 
@@ -19,6 +19,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <DashboardNav
         companyName={contractor?.companyName ?? ''}
         userEmail={session.user.email ?? ''}
+        plan={contractor?.subscription?.plan ?? ''}
       />
       <main className="flex-1 bg-stone-50 bg-corrugated p-4 md:p-8 overflow-auto pt-[72px] md:pt-8">
         {children}
