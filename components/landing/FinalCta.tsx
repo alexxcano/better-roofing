@@ -1,5 +1,8 @@
+'use client'
+
 import Link from 'next/link'
 import { ArrowRight, HardHat } from 'lucide-react'
+import { trackEvent } from '@/lib/analytics'
 
 export function FinalCta() {
   return (
@@ -31,7 +34,7 @@ export function FinalCta() {
 
           {/* CTA */}
           <div className="flex-shrink-0">
-            <Link href="/signup" className="btn btn-primary px-10 py-5 text-base">
+            <Link href="/signup" className="btn btn-primary px-10 py-5 text-base" onClick={() => trackEvent('cta_click', { location: 'final_cta' })}>
               Start Capturing Leads Free
               <ArrowRight className="h-5 w-5" />
             </Link>

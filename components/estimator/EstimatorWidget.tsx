@@ -11,6 +11,7 @@ import { OutOfAreaScreen } from './OutOfAreaScreen'
 import { CinemaOverlay } from './CinemaOverlay'
 import type { ServiceLocation } from '@/lib/serviceArea'
 import type { SlopeType } from '@/lib/estimate'
+import { trackEvent } from '@/lib/analytics'
 
 interface EstimatorWidgetProps {
   contractorId: string
@@ -101,8 +102,10 @@ export function EstimatorWidget({
     }))
     if (d.outOfArea && outOfAreaBehavior === 'GATE') {
       setGated(true)
+      trackEvent('estimator_out_of_area')
       return
     }
+    trackEvent('estimator_step', { step: 'address' })
     setShowCinema(true)
   }
 
@@ -113,6 +116,7 @@ export function EstimatorWidget({
 
   const handleMaterialComplete = async (d: { materialType: string }) => {
     setData((prev) => ({ ...prev, ...d }))
+    trackEvent('estimator_step', { step: 'material', value: d.materialType })
 
     // Helper: call estimate API and jump to step 6 if successful
     const calcAndAdvance = async (sqft: number, slope: SlopeType, isSolar: boolean) => {
@@ -181,7 +185,13 @@ export function EstimatorWidget({
         body: JSON.stringify(payload),
       })
 
-      if (!res.ok) {
+      if (res.ok) {
+        trackEvent('generate_lead', {
+          material: data.materialType,
+          insurance_claim: data.insuranceClaim,
+          contractor_id: contractorId,
+        })
+      } else {
         const err = await res.json().catch(() => ({}))
         console.error('[Widget] Lead submission failed:', res.status, err)
       }
@@ -237,7 +247,7 @@ export function EstimatorWidget({
 
               {/* CTA */}
               <button
-                onClick={() => goForward(2)}
+                onClick={() => { trackEvent('estimator_start'); goForward(2) }}
                 className="btn btn-primary w-full py-4 text-base font-black uppercase tracking-widest"
               >
                 Get My Free Estimate →
@@ -315,6 +325,7 @@ export function EstimatorWidget({
                             type="button"
                             onClick={() => {
                               setData((prev) => ({ ...prev, insuranceClaim: opt.value }))
+                              trackEvent('estimator_step', { step: 'insurance', value: opt.value })
                               goForward(4)
                             }}
                             className="w-full flex items-center gap-4 px-5 py-4 border-2 border-stone-200 hover:border-orange-500 hover:bg-orange-50 text-left transition-all group"

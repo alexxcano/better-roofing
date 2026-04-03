@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter, Barlow_Condensed } from 'next/font/google'
+import Script from 'next/script'
 import './globals.css'
 import { Toaster } from '@/components/ui/toaster'
 
@@ -141,6 +142,18 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.variable} ${barlow.variable} font-sans`}>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-FQDPZ117TS"
+          strategy="afterInteractive"
+        />
+        <Script id="ga4-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-FQDPZ117TS');
+          `}
+        </Script>
         {children}
         <Toaster />
       </body>

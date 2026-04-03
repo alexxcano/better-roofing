@@ -1,5 +1,8 @@
+'use client'
+
 import Link from 'next/link'
 import { ArrowRight, HardHat, Mail, MessageSquare, Sparkles, Zap } from 'lucide-react'
+import { trackEvent } from '@/lib/analytics'
 
 export function Hero() {
   return (
@@ -27,7 +30,7 @@ export function Hero() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
-              <Link href="/signup" className="btn btn-primary px-8 py-4 text-base">
+              <Link href="/signup" className="btn btn-primary px-8 py-4 text-base" onClick={() => trackEvent('cta_click', { location: 'hero' })}>
                 Start Capturing Leads Free
                 <ArrowRight className="h-4 w-4" />
               </Link>

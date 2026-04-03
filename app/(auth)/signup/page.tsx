@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { signIn } from 'next-auth/react'
 import { useToast } from '@/components/ui/use-toast'
+import { trackEvent } from '@/lib/analytics'
 
 const inputClass =
   'w-full border-2 border-stone-300 bg-white text-stone-900 text-sm font-medium px-3 py-2.5 focus:outline-none focus:border-orange-500 placeholder:text-stone-400'
@@ -53,6 +54,7 @@ export default function SignupPage() {
       setLoading(false)
       router.push('/login')
     } else {
+      trackEvent('sign_up', { method: 'email' })
       router.push('/dashboard/onboarding')
     }
   }
@@ -69,7 +71,7 @@ export default function SignupPage() {
         {/* Google */}
         <button
           type="button"
-          onClick={() => signIn('google', { callbackUrl: '/dashboard/onboarding' })}
+          onClick={() => { trackEvent('sign_up', { method: 'google' }); signIn('google', { callbackUrl: '/dashboard/onboarding' }) }}
           className="btn btn-ghost w-full py-2.5"
         >
           <svg className="h-4 w-4" viewBox="0 0 24 24">

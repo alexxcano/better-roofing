@@ -2,12 +2,14 @@
 
 import { useState } from 'react'
 import { PlanComparisonTable } from '@/components/shared/PlanComparisonTable'
+import { trackEvent } from '@/lib/analytics'
 
 export function PricingSection() {
   const [loading, setLoading] = useState<string | null>(null)
 
   const handleCheckout = async (plan: 'STARTER' | 'PRO') => {
     setLoading(plan)
+    trackEvent('cta_click', { location: 'pricing', plan: plan.toLowerCase() })
     window.location.href = '/signup'
   }
 

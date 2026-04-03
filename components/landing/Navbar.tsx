@@ -1,5 +1,8 @@
+'use client'
+
 import Link from 'next/link'
 import Image from 'next/image'
+import { trackEvent } from '@/lib/analytics'
 
 export function Navbar() {
   return (
@@ -31,7 +34,7 @@ export function Navbar() {
           <Link href="/login" className="hidden md:block text-sm text-stone-500 hover:text-stone-800 font-semibold uppercase tracking-wide transition-colors px-3 py-2">
             Log In
           </Link>
-          <Link href="/signup" className="btn btn-primary px-5 py-2">
+          <Link href="/signup" className="btn btn-primary px-5 py-2" onClick={() => trackEvent('cta_click', { location: 'navbar' })}>
             Try Free →
           </Link>
         </div>
