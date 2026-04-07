@@ -41,63 +41,130 @@ export async function sendLeadNotification({
     const emoji = score >= 8 ? '🔥' : score >= 5 ? '⚡' : score >= 3 ? '👍' : '🧊'
     const tierColor = TIER_COLORS[tier]
 
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL
+    const dashboardUrl = `${appUrl}/dashboard/leads`
+    const insuranceLabel = INSURANCE_LABELS[lead.insuranceClaim] ?? lead.insuranceClaim
+    const materialLabel = MATERIAL_LABELS[lead.materialType] ?? lead.materialType
+    const estimateRange = `$${lead.estimateLow.toLocaleString()} – $${lead.estimateHigh.toLocaleString()}`
+
     await resend.emails.send({
       from: 'BetterRoofing <notifications@betterroofing.co>',
       to: toEmail,
-      subject: `${emoji} ${label} lead: ${lead.name} (score ${score}/10) — ${companyName}`,
+      subject: `${emoji} New ${label} lead: ${lead.name} · Score ${score}/10`,
+      text: [
+        `NEW ROOFING LEAD — ${companyName}`,
+        `Score: ${score}/10 (${label})`,
+        ``,
+        `CONTACT`,
+        `Name:    ${lead.name}`,
+        `Email:   ${lead.email}`,
+        `Phone:   ${lead.phone ?? 'Not provided'}`,
+        `Address: ${lead.address}`,
+        ``,
+        `QUALIFICATION`,
+        `Insurance: ${insuranceLabel}`,
+        lead.outOfArea ? `Service Area: OUTSIDE your service radius` : '',
+        ``,
+        `ESTIMATE`,
+        `Material:     ${materialLabel}`,
+        `Roof squares: ${lead.roofSquares.toFixed(1)}`,
+        `Range:        ${estimateRange}`,
+        ``,
+        `View in dashboard: ${dashboardUrl}`,
+        ``,
+        `BetterRoofing — Manage notifications: ${appUrl}/dashboard/settings`,
+      ].filter(Boolean).join('\n'),
       html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: #f97316; padding: 20px; border-radius: 8px 8px 0 0;">
-            <h1 style="color: white; margin: 0; font-size: 20px;">New Roofing Lead</h1>
-            <p style="color: #fed7aa; margin: 4px 0 0;">${companyName}</p>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1c1917;">
+
+          <!-- Header -->
+          <div style="background: #1c1917; padding: 20px 24px; border-bottom: 4px solid #f97316;">
+            <p style="color: #a8a29e; margin: 0 0 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;">BetterRoofing · New Lead</p>
+            <p style="color: white; margin: 0; font-size: 18px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.03em;">${companyName}</p>
           </div>
 
-          <div style="background: white; border: 1px solid #e2e8f0; border-top: none; padding: 24px; border-radius: 0 0 8px 8px;">
-
-            <!-- Lead score badge -->
-            <div style="margin-bottom: 20px;">
-              <span style="background: ${tierColor}1a; color: ${tierColor}; border: 1px solid ${tierColor}40; padding: 6px 14px; border-radius: 9999px; font-weight: 700; font-size: 15px;">
-                ${emoji} ${label} Lead · ${score}/10
-              </span>
-            </div>
-
-            <h2 style="font-size: 18px; color: #0f172a; margin: 0 0 12px;">Contact</h2>
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-              <tr><td style="padding: 6px 0; color: #64748b; width: 140px;">Name</td><td style="padding: 6px 0; font-weight: 600;">${lead.name}</td></tr>
-              <tr><td style="padding: 6px 0; color: #64748b;">Email</td><td style="padding: 6px 0;"><a href="mailto:${lead.email}" style="color: #f97316;">${lead.email}</a></td></tr>
-              <tr><td style="padding: 6px 0; color: #64748b;">Phone</td><td style="padding: 6px 0;">${lead.phone || '—'}</td></tr>
-              <tr><td style="padding: 6px 0; color: #64748b;">Address</td><td style="padding: 6px 0;">${lead.address}</td></tr>
-            </table>
-
-            <h2 style="font-size: 18px; color: #0f172a; margin: 0 0 12px;">Qualification</h2>
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-              <tr><td style="padding: 6px 0; color: #64748b; width: 140px;">Insurance</td><td style="padding: 6px 0;">${INSURANCE_LABELS[lead.insuranceClaim] ?? lead.insuranceClaim}</td></tr>
-              ${lead.outOfArea ? `<tr><td style="padding: 6px 0; color: #64748b;">Service Area</td><td style="padding: 6px 0; color: #ea580c; font-weight: 600;">⚠️ Outside service area</td></tr>` : ''}
-            </table>
-
-            <h2 style="font-size: 18px; color: #0f172a; margin: 0 0 12px;">Estimate</h2>
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-              <tr><td style="padding: 6px 0; color: #64748b; width: 140px;">Material</td><td style="padding: 6px 0;">${MATERIAL_LABELS[lead.materialType] ?? lead.materialType}</td></tr>
-              <tr><td style="padding: 6px 0; color: #64748b;">Roof Squares</td><td style="padding: 6px 0;">${lead.roofSquares.toFixed(1)}</td></tr>
+          <!-- Score bar -->
+          <div style="background: ${tierColor}; padding: 14px 24px; display: flex; align-items: center;">
+            <table style="border-collapse: collapse; width: 100%;">
               <tr>
-                <td style="padding: 6px 0; color: #64748b;">Range</td>
-                <td style="padding: 6px 0;">
-                  <span style="background: #dcfce7; color: #166534; font-weight: 700; padding: 4px 10px; border-radius: 9999px;">
-                    $${lead.estimateLow.toLocaleString()} – $${lead.estimateHigh.toLocaleString()}
-                  </span>
+                <td style="vertical-align: middle;">
+                  <table style="border-collapse: collapse;">
+                    <tr>
+                      <td style="width: 44px; height: 44px; background: rgba(0,0,0,0.25); text-align: center; vertical-align: middle; padding: 0;">
+                        <span style="font-size: 22px; font-weight: 900; color: white; line-height: 1;">${score}</span>
+                      </td>
+                      <td style="padding-left: 12px; vertical-align: middle;">
+                        <p style="margin: 0; font-size: 16px; font-weight: 900; color: white; text-transform: uppercase; letter-spacing: 0.04em;">${emoji} ${label} Lead</p>
+                        <p style="margin: 2px 0 0; font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.75); text-transform: uppercase; letter-spacing: 0.06em;">Score ${score}/10</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+                <td style="text-align: right; vertical-align: middle;">
+                  <p style="margin: 0; font-size: 22px; font-weight: 900; color: white; line-height: 1;">${estimateRange}</p>
+                  <p style="margin: 2px 0 0; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.06em;">Estimate range</p>
                 </td>
               </tr>
             </table>
-
-            <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/leads"
-               style="background: #f97316; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600; display: inline-block;">
-              View in Dashboard →
-            </a>
           </div>
 
-          <p style="text-align: center; color: #94a3b8; font-size: 12px; margin-top: 16px;">
-            Powered by BetterRoofing · <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings" style="color: #94a3b8;">Manage notification settings</a>
+          <!-- Body -->
+          <div style="background: white; border: 2px solid #e7e5e4; border-top: none; padding: 24px;">
+
+            <!-- Contact -->
+            <p style="margin: 0 0 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #78716c;">Contact</p>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+              <tr style="border-bottom: 1px solid #f5f5f4;">
+                <td style="padding: 8px 0; color: #78716c; font-size: 13px; width: 130px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;">Name</td>
+                <td style="padding: 8px 0; font-weight: 700; color: #1c1917;">${lead.name}</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #f5f5f4;">
+                <td style="padding: 8px 0; color: #78716c; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;">Email</td>
+                <td style="padding: 8px 0;"><a href="mailto:${lead.email}" style="color: #f97316; font-weight: 600; text-decoration: none;">${lead.email}</a></td>
+              </tr>
+              <tr style="border-bottom: 1px solid #f5f5f4;">
+                <td style="padding: 8px 0; color: #78716c; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;">Phone</td>
+                <td style="padding: 8px 0; color: #1c1917;">${lead.phone ?? 'Not provided'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #78716c; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;">Address</td>
+                <td style="padding: 8px 0; color: #1c1917;">${lead.address}</td>
+              </tr>
+            </table>
+
+            <!-- Qualification -->
+            <p style="margin: 0 0 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #78716c;">Qualification</p>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+              <tr style="border-bottom: 1px solid #f5f5f4;">
+                <td style="padding: 8px 0; color: #78716c; font-size: 13px; width: 130px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;">Insurance</td>
+                <td style="padding: 8px 0; color: #1c1917; font-weight: 600;">${insuranceLabel}</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #f5f5f4;">
+                <td style="padding: 8px 0; color: #78716c; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;">Material</td>
+                <td style="padding: 8px 0; color: #1c1917;">${materialLabel}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #78716c; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;">Roof Squares</td>
+                <td style="padding: 8px 0; color: #1c1917;">${lead.roofSquares.toFixed(1)} squares</td>
+              </tr>
+              ${lead.outOfArea ? `
+              <tr>
+                <td style="padding: 8px 0; color: #78716c; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;">Service Area</td>
+                <td style="padding: 8px 0; color: #ea580c; font-weight: 700;">Outside your radius</td>
+              </tr>` : ''}
+            </table>
+
+            <a href="${dashboardUrl}"
+               style="background: #f97316; color: white; padding: 12px 24px; text-decoration: none; font-weight: 700; font-size: 13px; display: inline-block; text-transform: uppercase; letter-spacing: 0.06em;">
+              View Lead in Dashboard →
+            </a>
+
+          </div>
+
+          <p style="text-align: center; color: #a8a29e; font-size: 11px; margin-top: 16px;">
+            BetterRoofing · <a href="${appUrl}/dashboard/settings" style="color: #a8a29e;">Manage notification settings</a>
           </p>
+
         </div>
       `,
     })
@@ -134,10 +201,24 @@ export async function sendWeeklyReport({
       .map((line) => `<p style="margin: 0 0 12px; line-height: 1.6;">${line}</p>`)
       .join('')
 
+    const plainReport = report.replace(/\*\*(.*?)\*\*/g, '$1')
+
     await resend.emails.send({
       from: 'BetterRoofing <reports@betterroofing.co>',
       to: toEmail,
-      subject: `📊 Your weekly lead report — week of ${weekStr}`,
+      subject: `Your weekly lead report — week of ${weekStr}`,
+      text: [
+        `WEEKLY INTELLIGENCE REPORT — ${companyName}`,
+        `Week of ${weekStr}`,
+        ``,
+        `New Leads: ${stats.newLeads}  |  Hot Leads: ${stats.hotLeads}  |  Avg Estimate: $${stats.avgEstimate.toLocaleString()}  |  Pipeline Value: $${stats.totalEstimateValue.toLocaleString()}`,
+        ``,
+        plainReport,
+        ``,
+        `Open your dashboard: ${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
+        ``,
+        `BetterRoofing — Manage notifications: ${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings`,
+      ].join('\n'),
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #1c1917;">
 
@@ -225,11 +306,24 @@ export async function sendTrialReminder({
       from: 'BetterRoofing <notifications@betterroofing.co>',
       to: toEmail,
       subject,
+      text: [
+        subject.toUpperCase(),
+        ``,
+        heroLine.replace(/<strong>(.*?)<\/strong>/g, '$1'),
+        ``,
+        bodyLine,
+        ``,
+        `Subscribe now: ${upgradeUrl}`,
+        ``,
+        `Your quote widget keeps running 24/7. Every lead comes in scored so you know who to call first. You get a plain-English brief on each homeowner and follow-up drafts ready to send. Every Monday you get a report on your pipeline.`,
+        ``,
+        `BetterRoofing — Manage notifications: ${appUrl}/dashboard/settings`,
+      ].join('\n'),
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #1c1917;">
 
           <div style="background: #1c1917; padding: 24px; border-bottom: 4px solid #f97316;">
-            <p style="color: #a8a29e; margin: 0 0 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;">BetterRoofing</p>
+            <p style="color: #a8a29e; margin: 0 0 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;">BetterRoofing · ${companyName}</p>
             <h1 style="color: white; margin: 0; font-size: 22px; font-weight: 900; line-height: 1.3;">${subject}</h1>
           </div>
 
