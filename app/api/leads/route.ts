@@ -179,8 +179,8 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    // Generate AI brief + follow-up drafts (Pro feature — fire and forget)
-    void generateLeadDrafts({
+    // Generate AI brief + follow-up drafts (Pro only — fire and forget)
+    if (subscription.plan === 'PRO') void generateLeadDrafts({
       companyName: contractor.companyName,
       leadName: lead.name,
       address: lead.address,
