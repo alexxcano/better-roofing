@@ -154,6 +154,6 @@ const DEV_SESSION = {
 }
 
 export const auth =
-  process.env.DEV_BYPASS_AUTH === 'true'
+  process.env.DEV_BYPASS_AUTH === 'true' && process.env.NODE_ENV !== 'production'
     ? (() => Promise.resolve(DEV_SESSION)) as typeof nextAuth.auth
     : nextAuth.auth
