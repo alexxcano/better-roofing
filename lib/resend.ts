@@ -1,6 +1,8 @@
 import { Resend } from 'resend'
 import type { Lead } from '@prisma/client'
 
+export type TrialReminderType = '3d' | 'expiry'
+
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 const MATERIAL_LABELS: Record<string, string> = {
@@ -184,5 +186,83 @@ export async function sendWeeklyReport({
     })
   } catch (err) {
     console.error('[Resend] Failed to send weekly report:', err)
+  }
+}
+
+export async function sendTrialReminder({
+  toEmail,
+  companyName,
+  type,
+  trialEndsAt,
+  leadCount,
+}: {
+  toEmail: string
+  companyName: string
+  type: TrialReminderType
+  trialEndsAt: Date
+  leadCount: number
+}): Promise<void> {
+  try {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL
+    const upgradeUrl = `${appUrl}/dashboard/billing`
+    const expiryDate = trialEndsAt.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
+
+    const subject = type === '3d'
+      ? `3 days left — your widget goes dark on ${expiryDate}`
+      : `Last chance — your quote widget shuts off tonight`
+
+    const ctaText = type === '3d' ? 'Keep My Widget Live' : "Don't Shut Off My Widget"
+
+    const heroLine = leadCount > 0
+      ? `Your widget pulled in <strong>${leadCount} lead${leadCount === 1 ? '' : 's'}</strong> during your trial. On ${expiryDate}, it goes dark.`
+      : `On ${expiryDate}, your widget goes dark. Any homeowner who lands on your site after that gets nothing — and goes to the next guy.`
+
+    const bodyLine = type === '3d'
+      ? `You've got 3 days to decide. At $49/mo, one job you would have missed pays for the next two years. No setup fee. Cancel anytime.`
+      : `This is the last day. After tonight, your widget stops accepting leads and your dashboard locks. Takes 2 minutes to subscribe and keep everything running.`
+
+    await resend.emails.send({
+      from: 'BetterRoofing <notifications@betterroofing.co>',
+      to: toEmail,
+      subject,
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #1c1917;">
+
+          <div style="background: #1c1917; padding: 24px; border-bottom: 4px solid #f97316;">
+            <p style="color: #a8a29e; margin: 0 0 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;">BetterRoofing</p>
+            <h1 style="color: white; margin: 0; font-size: 22px; font-weight: 900; line-height: 1.3;">${subject}</h1>
+          </div>
+
+          <div style="background: white; border: 2px solid #e7e5e4; border-top: none; padding: 28px;">
+
+            <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #1c1917;">${heroLine}</p>
+
+            <p style="margin: 0 0 28px; line-height: 1.6; color: #44403c;">${bodyLine}</p>
+
+            <a href="${upgradeUrl}"
+               style="background: #f97316; color: white; padding: 14px 28px; border-radius: 4px; text-decoration: none; font-weight: 700; font-size: 15px; display: inline-block; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 28px;">
+              ${ctaText} →
+            </a>
+
+            <div style="border-top: 2px solid #f5f5f4; padding-top: 20px;">
+              <p style="margin: 0 0 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #78716c;">What stays on after you subscribe</p>
+              <p style="margin: 0; font-size: 14px; line-height: 1.7; color: #44403c;">
+                Your quote widget keeps running 24/7. Every lead comes in scored so you know who to call first.
+                You get a plain-English brief on each homeowner and follow-up drafts ready to send.
+                Every Monday you get a report on your pipeline.
+              </p>
+            </div>
+
+          </div>
+
+          <p style="text-align: center; color: #a8a29e; font-size: 11px; margin-top: 16px;">
+            BetterRoofing · <a href="${appUrl}/dashboard/settings" style="color: #a8a29e;">Manage notifications</a>
+          </p>
+
+        </div>
+      `,
+    })
+  } catch (err) {
+    console.error('[Resend] Failed to send trial reminder:', err)
   }
 }

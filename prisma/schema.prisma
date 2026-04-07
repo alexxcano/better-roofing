@@ -191,8 +191,10 @@ model Subscription {
   stripeSubscriptionId String?
   plan                 Plan      @default(STARTER)
   status               String    @default("inactive")
-  currentPeriodEnd     DateTime?
-  trialEndsAt          DateTime?
+  currentPeriodEnd          DateTime?
+  trialEndsAt               DateTime?
+  trialReminder3dSentAt     DateTime?
+  trialReminderExpirySentAt DateTime?
 
   contractor Contractor @relation(fields: [contractorId], references: [id], onDelete: Cascade)
 }

@@ -97,6 +97,14 @@ const nextAuth = NextAuth({
             where: { id: user.id },
             data: { contractorId: contractor.id },
           })
+          await prisma.subscription.create({
+            data: {
+              contractorId: contractor.id,
+              plan: 'PRO',
+              status: 'trialing',
+              trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+            },
+          })
         }
       }
       return true
