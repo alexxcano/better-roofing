@@ -2,7 +2,8 @@
 
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { LeadScoreBadge } from './LeadScoreBadge'
-import { Download, Search, MapPinOff, Mail, MessageSquare, Sparkles, X, ShieldCheck, Shield } from 'lucide-react'
+import { Download, Search, MapPinOff, Mail, MessageSquare, Sparkles, X, ShieldCheck, Shield, Lock } from 'lucide-react'
+import Link from 'next/link'
 import { SatelliteMap } from '@/components/shared/SatelliteMap'
 import type { Lead } from '@prisma/client'
 
@@ -121,10 +122,12 @@ function LeadDrawer({
   lead,
   onClose,
   onStatusUpdate,
+  isPro,
 }: {
   lead: Lead
   onClose: () => void
   onStatusUpdate: (id: string, status: string) => void
+  isPro: boolean
 }) {
   const emailDraft = lead.aiEmailDraft ?? ''
   const smsDraft = lead.aiSmsDraft ?? ''
@@ -241,17 +244,28 @@ function LeadDrawer({
           {/* AI Brief */}
           {briefBullets.length > 0 && (
             <div className="bg-stone-900 px-6 py-5">
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="h-3.5 w-3.5 text-orange-400 flex-shrink-0" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-orange-400">AI Lead Intelligence</p>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-3.5 w-3.5 text-orange-400 flex-shrink-0" />
+                  <p className="text-[10px] font-black uppercase tracking-widest text-orange-400">Lead Intelligence Brief</p>
+                </div>
+                <span className="text-[9px] font-black uppercase tracking-widest text-orange-500 border border-orange-700 bg-orange-950 px-2 py-0.5">AI</span>
               </div>
-              <ul className="space-y-3">
-                {briefBullets.map((bullet, i) => (
-                  <li key={i} className="flex items-start gap-3">
-                    <span className="h-1.5 w-1.5 rounded-full bg-orange-500 flex-shrink-0 mt-1.5" />
-                    <p className="text-sm text-stone-300 leading-relaxed">{bullet}</p>
-                  </li>
-                ))}
+              <ul className="space-y-4">
+                {briefBullets.map((bullet, i) => {
+                  const labels = ['Situation', 'Job Value', 'Priority Action', 'Opening Line']
+                  const colors = ['text-stone-400', 'text-orange-400', 'text-green-400', 'text-blue-400']
+                  return (
+                    <li key={i} className="flex items-start gap-3">
+                      <div className="flex-shrink-0 mt-0.5">
+                        {labels[i] && (
+                          <p className={`text-[9px] font-black uppercase tracking-widest mb-0.5 ${colors[i]}`}>{labels[i]}</p>
+                        )}
+                      </div>
+                      <p className="text-sm text-stone-200 leading-relaxed">{bullet}</p>
+                    </li>
+                  )
+                })}
               </ul>
             </div>
           )}
@@ -307,28 +321,61 @@ function LeadDrawer({
           </div>
 
           {/* AI Drafts */}
-          {(emailDraft || smsDraft) && (
-            <div className="px-6 py-5 space-y-6 bg-white border-b border-stone-200">
-              {emailDraft && (
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-orange-600 mb-3">AI Email Draft</p>
-                  {subject && (
-                    <p className="text-xs font-bold text-stone-500 mb-2">
-                      Subject: <span className="text-stone-700 font-semibold normal-case">{subject}</span>
-                    </p>
-                  )}
-                  <p className="text-sm text-stone-600 whitespace-pre-wrap leading-relaxed bg-stone-50 border-2 border-stone-200 p-4">{body}</p>
-                </div>
-              )}
-              {smsDraft && (
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-stone-500">AI SMS Draft</p>
-                    <span className="text-[10px] text-stone-400 font-semibold">{smsDraft.length} / 160 chars</span>
+          {isPro ? (
+            (emailDraft || smsDraft) && (
+              <div className="px-6 py-5 space-y-6 bg-white border-b border-stone-200">
+                {emailDraft && (
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-orange-600 mb-3">AI Email Draft</p>
+                    {subject && (
+                      <p className="text-xs font-bold text-stone-500 mb-2">
+                        Subject: <span className="text-stone-700 font-semibold normal-case">{subject}</span>
+                      </p>
+                    )}
+                    <p className="text-sm text-stone-600 whitespace-pre-wrap leading-relaxed bg-stone-50 border-2 border-stone-200 p-4">{body}</p>
                   </div>
-                  <p className="text-sm text-stone-600 leading-relaxed bg-stone-50 border-2 border-stone-200 p-4">{smsDraft}</p>
+                )}
+                {smsDraft && (
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-stone-500">AI SMS Draft</p>
+                      <span className="text-[10px] text-stone-400 font-semibold">{smsDraft.length} / 160 chars</span>
+                    </div>
+                    <p className="text-sm text-stone-600 leading-relaxed bg-stone-50 border-2 border-stone-200 p-4">{smsDraft}</p>
+                  </div>
+                )}
+              </div>
+            )
+          ) : (
+            <div className="px-6 py-5 bg-white border-b border-stone-200">
+              <div className="border-2 border-dashed border-stone-300 p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <Lock className="h-3.5 w-3.5 text-stone-400 flex-shrink-0" />
+                  <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Pro Feature</p>
                 </div>
-              )}
+                <p className="text-sm font-bold text-stone-700 mb-1">AI-written follow-up drafts</p>
+                <p className="text-xs text-stone-500 leading-relaxed mb-4">
+                  Pro subscribers get a ready-to-send email and SMS draft for every lead — written specifically for this homeowner, their material, and their insurance situation.
+                </p>
+                <div className="space-y-2 mb-4 pointer-events-none select-none">
+                  <div className="bg-stone-100 border border-stone-200 px-3 py-2">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-stone-300 mb-1.5">AI Email Draft</p>
+                    <div className="space-y-1.5">
+                      <div className="h-2.5 bg-stone-200 w-3/4" />
+                      <div className="h-2.5 bg-stone-200 w-full" />
+                      <div className="h-2.5 bg-stone-200 w-5/6" />
+                      <div className="h-2.5 bg-stone-200 w-2/3" />
+                    </div>
+                  </div>
+                  <div className="bg-stone-100 border border-stone-200 px-3 py-2">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-stone-300 mb-1.5">AI SMS Draft</p>
+                    <div className="h-2.5 bg-stone-200 w-5/6" />
+                  </div>
+                </div>
+                <Link href="/dashboard/billing" className="btn btn-primary px-4 py-2 text-xs">
+                  Upgrade to Pro →
+                </Link>
+              </div>
             </div>
           )}
 
@@ -352,6 +399,7 @@ interface LeadsTableProps {
   leads: Lead[]
   totalCount?: number
   limit?: number
+  isPro?: boolean
 }
 
 const STATUS_FILTERS = [
@@ -364,7 +412,7 @@ const STATUS_FILTERS = [
   { value: 'all',       label: 'All' },
 ]
 
-export function LeadsTable({ leads: initialLeads, totalCount, limit }: LeadsTableProps) {
+export function LeadsTable({ leads: initialLeads, totalCount, limit, isPro = false }: LeadsTableProps) {
   const [leads, setLeads] = useState(initialLeads)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('active')
@@ -616,6 +664,7 @@ export function LeadsTable({ leads: initialLeads, totalCount, limit }: LeadsTabl
           lead={selectedLead}
           onClose={() => setSelectedLead(null)}
           onStatusUpdate={handleStatusUpdate}
+          isPro={isPro}
         />
       )}
     </>

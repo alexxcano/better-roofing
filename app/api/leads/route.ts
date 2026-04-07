@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { sendLeadNotification } from '@/lib/resend'
 import { calculateLeadScore } from '@/lib/leadScore'
 import { checkServiceArea } from '@/lib/serviceArea'
-import { generateLeadDrafts } from '@/lib/generateLeadEmail'
+import { generateLeadBrief, generateLeadDrafts } from '@/lib/generateLeadEmail'
 import { leadsRatelimit } from '@/lib/ratelimit'
 import { z } from 'zod'
 import dns from 'dns'
@@ -179,8 +179,7 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    // Generate AI brief + follow-up drafts (Pro only — fire and forget)
-    if (subscription.plan === 'PRO') void generateLeadDrafts({
+    const aiInput = {
       companyName: contractor.companyName,
       leadName: lead.name,
       address: lead.address,
@@ -189,16 +188,28 @@ export async function POST(req: NextRequest) {
       roofSquares: lead.roofSquares,
       estimateLow: lead.estimateLow,
       estimateHigh: lead.estimateHigh,
-    }).then(({ brief, email, sms }) => {
-      return prisma.lead.update({
+    }
+
+    // AI brief — all plans (fire and forget)
+    void generateLeadBrief(aiInput)
+      .then((brief) => prisma.lead.update({
         where: { id: lead.id },
-        data: {
-          aiLeadBrief: brief || null,
-          aiEmailDraft: email || null,
-          aiSmsDraft: sms || null,
-        },
-      })
-    }).catch((err) => console.error('[AI Drafts] Generation failed:', err))
+        data: { aiLeadBrief: brief || null },
+      }))
+      .catch((err) => console.error('[AI Brief] Generation failed:', err))
+
+    // AI email + SMS drafts — Pro only (fire and forget)
+    if (subscription.plan === 'PRO') {
+      void generateLeadDrafts(aiInput)
+        .then(({ email, sms }) => prisma.lead.update({
+          where: { id: lead.id },
+          data: {
+            aiEmailDraft: email || null,
+            aiSmsDraft: sms || null,
+          },
+        }))
+        .catch((err) => console.error('[AI Drafts] Generation failed:', err))
+    }
 
     return NextResponse.json(lead, { status: 201 })
   } catch (error) {

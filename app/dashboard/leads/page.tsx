@@ -9,7 +9,7 @@ export default async function LeadsPage() {
 
   const LIMIT = 100
 
-  const [leads, totalCount] = await Promise.all([
+  const [leads, totalCount, subscription] = await Promise.all([
     prisma.lead.findMany({
       where: { contractorId: session.user.contractorId },
       orderBy: { createdAt: 'desc' },
@@ -18,7 +18,13 @@ export default async function LeadsPage() {
     prisma.lead.count({
       where: { contractorId: session.user.contractorId },
     }),
+    prisma.subscription.findUnique({
+      where: { contractorId: session.user.contractorId },
+      select: { plan: true, status: true },
+    }),
   ])
+
+  const isPro = subscription?.plan === 'PRO' && ['active', 'trialing'].includes(subscription?.status ?? '')
 
   return (
     <div className="space-y-6">
@@ -26,7 +32,7 @@ export default async function LeadsPage() {
         <h1 className="font-barlow font-black text-3xl uppercase text-stone-900 leading-none">Leads</h1>
         <p className="text-stone-500 text-sm font-semibold mt-1 uppercase tracking-wide">{totalCount} total leads collected</p>
       </div>
-      <LeadsTable leads={leads} totalCount={totalCount} limit={LIMIT} />
+      <LeadsTable leads={leads} totalCount={totalCount} limit={LIMIT} isPro={isPro} />
     </div>
   )
 }
