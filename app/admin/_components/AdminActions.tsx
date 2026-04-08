@@ -50,7 +50,13 @@ function ActionBtn({
 
 // ─── Ticket ───────────────────────────────────────────────────────────────────
 
-export function ResolveTicketButton({ ticketId }: { ticketId: string }) {
+export function ResolveTicketButton({
+  ticketId,
+  onResolved,
+}: {
+  ticketId: string
+  onResolved?: () => void
+}) {
   const router = useRouter()
   return (
     <ActionBtn
@@ -60,6 +66,7 @@ export function ResolveTicketButton({ ticketId }: { ticketId: string }) {
         const res = await fetch(`/api/admin/tickets/${ticketId}/resolve`, { method: 'POST' })
         if (!res.ok) throw new Error()
         router.refresh()
+        onResolved?.()
       }}
     >
       Resolve

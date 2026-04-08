@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { AlertTriangle, Ticket } from 'lucide-react'
-import { ResolveTicketButton, ExtendTrialButton } from './AdminActions'
+import { ExtendTrialButton } from './AdminActions'
+import { TicketModal } from './TicketModal'
 
 export async function AlertCards() {
   const now = new Date()
@@ -15,7 +16,18 @@ export async function AlertCards() {
     prisma.supportTicket.findMany({
       where: { status: { in: ['open', 'in_progress'] } },
       orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
-      select: { id: true, subject: true, companyName: true, status: true },
+      select: {
+        id: true,
+        subject: true,
+        message: true,
+        category: true,
+        status: true,
+        companyName: true,
+        plan: true,
+        userEmail: true,
+        pageUrl: true,
+        createdAt: true,
+      },
     }),
   ])
 
@@ -101,13 +113,7 @@ export async function AlertCards() {
           ) : (
             openTickets.map((t) => (
               <div key={t.id} className="px-3 py-2.5 space-y-1.5">
-                <p className="text-xs font-bold text-stone-900 truncate">{t.subject}</p>
-                {t.companyName && (
-                  <p className="text-[10px] text-stone-400 font-semibold truncate">
-                    {t.companyName}
-                  </p>
-                )}
-                <ResolveTicketButton ticketId={t.id} />
+                <TicketModal ticket={t} />
               </div>
             ))
           )}
