@@ -13,27 +13,18 @@ export default async function AdminPage({
   const tab = params.tab || 'overview'
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between gap-6">
-        <div className="border-l-4 border-orange-500 pl-4">
-          <h1 className="font-barlow font-black text-3xl uppercase text-stone-900 leading-none">
-            Admin Dashboard
-          </h1>
-          <p className="text-stone-500 text-sm font-semibold mt-1 uppercase tracking-wide">
-            Platform overview
-          </p>
-        </div>
-        <AlertCards />
-      </div>
-
-      <div>
-        {tab === 'overview' && <OverviewTab />}
-        {tab === 'leads' && <LeadsTab />}
-        {tab === 'contractors' && (
-          <ContractorsTab search={params.search?.trim() || ''} status={params.status || ''} setup={params.setup || ''} />
-        )}
-        {tab === 'revenue' && <RevenueTab />}
-      </div>
+    <div className="space-y-5">
+      {tab === 'overview' && (
+        <>
+          <AlertCards />
+          <OverviewTab />
+        </>
+      )}
+      {tab === 'leads' && <LeadsTab />}
+      {tab === 'contractors' && (
+        <ContractorsTab search={params.search?.trim() || ''} status={params.status || ''} setup={params.setup || ''} />
+      )}
+      {tab === 'revenue' && <RevenueTab />}
     </div>
   )
 }

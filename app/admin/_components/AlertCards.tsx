@@ -1,6 +1,5 @@
 import { prisma } from '@/lib/prisma'
 import { AlertTriangle, Ticket } from 'lucide-react'
-import { ExtendTrialButton } from './AdminActions'
 import { TicketModal } from './TicketModal'
 
 export async function AlertCards() {
@@ -38,7 +37,6 @@ export async function AlertCards() {
     const expired = daysLeft <= 0
     return {
       id: sub.id,
-      contractorId: sub.contractorId,
       name: sub.contractor.companyName,
       badge: expired ? 'Expired' : `${daysLeft}d left`,
       variant: expired ? 'red' : 'orange',
@@ -46,16 +44,16 @@ export async function AlertCards() {
   })
 
   return (
-    <div className="flex gap-3 self-start flex-shrink-0">
+    <div className="grid grid-cols-2 border border-stone-300 bg-white divide-x divide-stone-300">
 
       {/* Trials Expiring */}
-      <div className="w-52 min-h-[120px] border border-stone-300 bg-white flex flex-col">
-        <div className="px-3 py-2 bg-stone-100 border-b border-stone-300 flex items-center gap-1.5 flex-shrink-0">
+      <div className="flex flex-col">
+        <div className="px-5 py-3 bg-stone-100 border-b border-stone-300 flex items-center gap-2 flex-shrink-0">
           <AlertTriangle
-            className={`h-3 w-3 flex-shrink-0 ${trialsExpiringSoon.length > 0 ? 'text-orange-500' : 'text-stone-400'}`}
+            className={`h-3.5 w-3.5 flex-shrink-0 ${trialsExpiringSoon.length > 0 ? 'text-orange-500' : 'text-stone-400'}`}
           />
-          <p className="text-[10px] font-black uppercase tracking-widest text-stone-600 leading-none">
-            Trials Expiring
+          <p className="text-[10px] font-black uppercase tracking-widest text-stone-600">
+            Trials Expiring Soon
           </p>
           {trialsExpiringSoon.length > 0 && (
             <span className="ml-auto text-[9px] font-black text-orange-600 border border-orange-300 bg-orange-50 px-1.5 py-0.5 leading-none">
@@ -63,27 +61,24 @@ export async function AlertCards() {
             </span>
           )}
         </div>
-        <div className="flex-1 divide-y divide-stone-100">
+        <div className="divide-y divide-stone-100">
           {trialRows.length === 0 ? (
-            <p className="px-3 py-3 text-[10px] text-stone-400 font-semibold uppercase tracking-wide">
+            <p className="px-5 py-4 text-[10px] text-stone-400 font-semibold uppercase tracking-wide">
               None expiring soon
             </p>
           ) : (
             trialRows.map((row) => (
-              <div key={row.id} className="px-3 py-2.5 space-y-1.5">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs font-bold text-stone-900 truncate">{row.name}</p>
-                  <span
-                    className={`text-[10px] font-black border px-1.5 py-0.5 shrink-0 leading-none ${
-                      row.variant === 'red'
-                        ? 'text-red-600 border-red-300 bg-red-50'
-                        : 'text-orange-600 border-orange-300 bg-orange-50'
-                    }`}
-                  >
-                    {row.badge}
-                  </span>
-                </div>
-                <ExtendTrialButton contractorId={row.contractorId} />
+              <div key={row.id} className="px-5 py-3 flex items-center justify-between gap-4">
+                <p className="text-sm font-bold text-stone-900 truncate">{row.name}</p>
+                <span
+                  className={`text-[10px] font-black border px-1.5 py-0.5 leading-none shrink-0 ${
+                    row.variant === 'red'
+                      ? 'text-red-600 border-red-300 bg-red-50'
+                      : 'text-orange-600 border-orange-300 bg-orange-50'
+                  }`}
+                >
+                  {row.badge}
+                </span>
               </div>
             ))
           )}
@@ -91,12 +86,12 @@ export async function AlertCards() {
       </div>
 
       {/* Open Support Tickets */}
-      <div className="w-52 min-h-[120px] border border-stone-300 bg-white flex flex-col">
-        <div className="px-3 py-2 bg-stone-100 border-b border-stone-300 flex items-center gap-1.5 flex-shrink-0">
+      <div className="flex flex-col">
+        <div className="px-5 py-3 bg-stone-100 border-b border-stone-300 flex items-center gap-2 flex-shrink-0">
           <Ticket
-            className={`h-3 w-3 flex-shrink-0 ${openTickets.length > 0 ? 'text-stone-600' : 'text-stone-400'}`}
+            className={`h-3.5 w-3.5 flex-shrink-0 ${openTickets.length > 0 ? 'text-stone-600' : 'text-stone-400'}`}
           />
-          <p className="text-[10px] font-black uppercase tracking-widest text-stone-600 leading-none">
+          <p className="text-[10px] font-black uppercase tracking-widest text-stone-600">
             Support Tickets
           </p>
           {openTickets.length > 0 && (
@@ -105,14 +100,14 @@ export async function AlertCards() {
             </span>
           )}
         </div>
-        <div className="flex-1 divide-y divide-stone-100">
+        <div className="divide-y divide-stone-100">
           {openTickets.length === 0 ? (
-            <p className="px-3 py-3 text-[10px] text-stone-400 font-semibold uppercase tracking-wide">
+            <p className="px-5 py-4 text-[10px] text-stone-400 font-semibold uppercase tracking-wide">
               No open tickets
             </p>
           ) : (
             openTickets.map((t) => (
-              <div key={t.id} className="px-3 py-2.5 space-y-1.5">
+              <div key={t.id} className="px-5 py-3">
                 <TicketModal ticket={t} />
               </div>
             ))

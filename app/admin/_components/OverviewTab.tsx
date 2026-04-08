@@ -77,38 +77,37 @@ export async function OverviewTab() {
   return (
     <div className="space-y-8">
       {/* Revenue */}
-      <div>
-        <div className="group relative inline-flex items-center gap-2 mb-2 cursor-default select-none">
-          <p className="text-[10px] font-black uppercase tracking-widest text-stone-400 group-hover:text-stone-600 transition-colors">
-            Revenue
-          </p>
-          <span className="text-[9px] font-black text-stone-300 border border-stone-200 bg-stone-50 px-1.5 py-0.5 group-hover:border-orange-300 group-hover:bg-orange-50 group-hover:text-orange-500 transition-all">
-            ?
-          </span>
-          <div className="absolute bottom-full left-0 mb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-20">
-            <div className="bg-stone-950 border-l-[3px] border-orange-500 shadow-2xl w-72">
-              <div className="px-4 pt-3 pb-1">
-                <p className="text-[9px] font-black uppercase tracking-widest text-orange-400 mb-2">How these are calculated</p>
-              </div>
-              <div className="px-4 pb-3 space-y-2">
-                <div>
-                  <p className="text-[11px] font-black text-white uppercase tracking-wide">MRR</p>
-                  <p className="text-[11px] text-stone-400 font-semibold leading-snug">Sum of active subscription prices — STARTER $49 · PRO $97</p>
+      <div className="border border-stone-300 bg-white">
+        <div className="px-5 py-3 bg-stone-100 border-b border-stone-300 flex items-center justify-between">
+          <p className="text-xs font-black uppercase tracking-widest text-stone-600">Revenue</p>
+          <div className="group relative inline-flex items-center cursor-default select-none">
+            <span className="text-[9px] font-black text-stone-400 border border-stone-300 bg-stone-50 px-1.5 py-0.5 group-hover:border-orange-300 group-hover:bg-orange-50 group-hover:text-orange-500 transition-all">
+              ?
+            </span>
+            <div className="absolute top-full right-0 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-20">
+              <div className="bg-stone-950 border-l-[3px] border-orange-500 shadow-2xl w-72">
+                <div className="px-4 pt-3 pb-1">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-orange-400 mb-2">How these are calculated</p>
                 </div>
-                <div>
-                  <p className="text-[11px] font-black text-white uppercase tracking-wide">ARR</p>
-                  <p className="text-[11px] text-stone-400 font-semibold leading-snug">MRR × 12</p>
-                </div>
-                <div>
-                  <p className="text-[11px] font-black text-white uppercase tracking-wide">Trial Conversion</p>
-                  <p className="text-[11px] text-stone-400 font-semibold leading-snug">% of completed trials that converted to a paid plan</p>
+                <div className="px-4 pb-3 space-y-2">
+                  <div>
+                    <p className="text-[11px] font-black text-white uppercase tracking-wide">MRR</p>
+                    <p className="text-[11px] text-stone-400 font-semibold leading-snug">Sum of active subscription prices — STARTER $49 · PRO $97</p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-black text-white uppercase tracking-wide">ARR</p>
+                    <p className="text-[11px] text-stone-400 font-semibold leading-snug">MRR × 12</p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-black text-white uppercase tracking-wide">Trial Conversion</p>
+                    <p className="text-[11px] text-stone-400 font-semibold leading-snug">% of completed trials that converted to a paid plan</p>
+                  </div>
                 </div>
               </div>
             </div>
-            <div className="w-2.5 h-2.5 bg-stone-950 rotate-45 ml-4 -mt-1.5" />
           </div>
         </div>
-        <div className="grid grid-cols-4 border border-stone-300 divide-x divide-stone-300 bg-white">
+        <div className="grid grid-cols-4 divide-x divide-stone-200">
           <MetricCard label="MRR" value={`$${mrr.toLocaleString()}`} icon={CreditCard} />
           <MetricCard label="ARR" value={`$${arr.toLocaleString()}`} icon={CreditCard} />
           <MetricCard label="Active Subscriptions" value={activeSubscriptions.length} icon={CreditCard} sub={`${trialingCount} trialing`} />
@@ -122,38 +121,37 @@ export async function OverviewTab() {
       </div>
 
       {/* Growth */}
-      <div>
-        <div className="group relative inline-flex items-center gap-2 mb-2 cursor-default select-none">
-          <p className="text-[10px] font-black uppercase tracking-widest text-stone-400 group-hover:text-stone-600 transition-colors">
-            Growth
-          </p>
-          <span className="text-[9px] font-black text-stone-300 border border-stone-200 bg-stone-50 px-1.5 py-0.5 group-hover:border-orange-300 group-hover:bg-orange-50 group-hover:text-orange-500 transition-all">
-            ?
-          </span>
-          <div className="absolute bottom-full left-0 mb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-20">
-            <div className="bg-stone-950 border-l-[3px] border-orange-500 shadow-2xl w-72">
-              <div className="px-4 pt-3 pb-1">
-                <p className="text-[9px] font-black uppercase tracking-widest text-orange-400 mb-2">How these are calculated</p>
-              </div>
-              <div className="px-4 pb-3 space-y-2">
-                <div>
-                  <p className="text-[11px] font-black text-white uppercase tracking-wide">Leads (30d) trend</p>
-                  <p className="text-[11px] text-stone-400 font-semibold leading-snug">Compared to the previous 30-day window</p>
+      <div className="border border-stone-300 bg-white">
+        <div className="px-5 py-3 bg-stone-100 border-b border-stone-300 flex items-center justify-between">
+          <p className="text-xs font-black uppercase tracking-widest text-stone-600">Growth</p>
+          <div className="group relative inline-flex items-center cursor-default select-none">
+            <span className="text-[9px] font-black text-stone-400 border border-stone-300 bg-stone-50 px-1.5 py-0.5 group-hover:border-orange-300 group-hover:bg-orange-50 group-hover:text-orange-500 transition-all">
+              ?
+            </span>
+            <div className="absolute top-full right-0 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-20">
+              <div className="bg-stone-950 border-l-[3px] border-orange-500 shadow-2xl w-72">
+                <div className="px-4 pt-3 pb-1">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-orange-400 mb-2">How these are calculated</p>
                 </div>
-                <div>
-                  <p className="text-[11px] font-black text-white uppercase tracking-wide">Dormant contractors</p>
-                  <p className="text-[11px] text-stone-400 font-semibold leading-snug">Signed up &gt;30 days ago with zero leads in the last 30 days — churn risk</p>
-                </div>
-                <div>
-                  <p className="text-[11px] font-black text-white uppercase tracking-wide">Signups (MTD)</p>
-                  <p className="text-[11px] text-stone-400 font-semibold leading-snug">Month-to-date vs same full calendar month last month</p>
+                <div className="px-4 pb-3 space-y-2">
+                  <div>
+                    <p className="text-[11px] font-black text-white uppercase tracking-wide">Leads (30d) trend</p>
+                    <p className="text-[11px] text-stone-400 font-semibold leading-snug">Compared to the previous 30-day window</p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-black text-white uppercase tracking-wide">Dormant contractors</p>
+                    <p className="text-[11px] text-stone-400 font-semibold leading-snug">Signed up &gt;30 days ago with zero leads in the last 30 days — churn risk</p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-black text-white uppercase tracking-wide">Signups (MTD)</p>
+                    <p className="text-[11px] text-stone-400 font-semibold leading-snug">Month-to-date vs same full calendar month last month</p>
+                  </div>
                 </div>
               </div>
             </div>
-            <div className="w-2.5 h-2.5 bg-stone-950 rotate-45 ml-4 -mt-1.5" />
           </div>
         </div>
-        <div className="grid grid-cols-4 border border-stone-300 divide-x divide-stone-300 bg-white">
+        <div className="grid grid-cols-4 divide-x divide-stone-200">
           <MetricCard label="Total Contractors" value={totalContractors} icon={Users} sub={`${dormantCount} dormant (30d)`} />
           <MetricCard label="Leads (Last 30d)" value={leadsLast30} icon={BarChart2} trend={lead30dTrend} sub={`${leadsPrev30} prev 30d`} />
           <MetricCard label="New Signups (MTD)" value={signupsThisMonth} icon={Users} trend={signupTrend} sub={`${signupsLastMonth} last month`} />
@@ -166,25 +164,29 @@ export async function OverviewTab() {
         <div className="px-5 py-3 bg-stone-100 border-b border-stone-300">
           <p className="text-xs font-black uppercase tracking-widest text-stone-600">Lead Velocity — Last 8 Weeks</p>
         </div>
-        <div className="px-6 pt-4 pb-3">
-          <div className="flex items-end gap-2 h-28">
-            {chartData.map((count, i) => {
-              const daysBack = (chartData.length - 1 - i) * 7
-              const weekDate = new Date(now.getTime() - daysBack * 24 * 60 * 60 * 1000)
-              const label = daysBack === 0
-                ? 'now'
-                : `${weekDate.getMonth() + 1}/${weekDate.getDate()}`
-              return (
-                <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                  {count > 0 && <span className="text-[9px] font-bold text-stone-500">{count}</span>}
-                  <div
-                    className={`w-full ${i === chartData.length - 1 ? 'bg-orange-500' : 'bg-stone-300'}`}
-                    style={{ height: `${Math.max((count / maxWeeklyLeads) * 80, count > 0 ? 4 : 2)}px` }}
-                  />
-                  <span className="text-[9px] text-stone-400 font-semibold">{label}</span>
-                </div>
-              )
-            })}
+        <div className="px-6 pt-5 pb-4">
+          <div className="relative">
+            {/* Midline reference */}
+            <div className="absolute inset-x-0 top-1/2 border-t border-dashed border-stone-200 pointer-events-none" />
+            <div className="flex items-end gap-2 h-36">
+              {chartData.map((count, i) => {
+                const daysBack = (chartData.length - 1 - i) * 7
+                const weekDate = new Date(now.getTime() - daysBack * 24 * 60 * 60 * 1000)
+                const label = daysBack === 0
+                  ? 'now'
+                  : `${weekDate.getMonth() + 1}/${weekDate.getDate()}`
+                return (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                    {count > 0 && <span className="text-[9px] font-bold text-stone-500">{count}</span>}
+                    <div
+                      className={`w-full ${i === chartData.length - 1 ? 'bg-orange-500' : 'bg-stone-300'}`}
+                      style={{ height: `${Math.max((count / maxWeeklyLeads) * 112, count > 0 ? 4 : 2)}px` }}
+                    />
+                    <span className="text-[9px] text-stone-400 font-semibold">{label}</span>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </div>
       </div>

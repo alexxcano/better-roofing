@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { AlertTriangle, Mail } from 'lucide-react'
-import { ExtendTrialButton, SendReminderButton } from './AdminActions'
+import { SendReminderButton } from './AdminActions'
 
 const SETUP_FILTERS: Record<string, object> = {
   'no-onboarding':  { onboardingCompleted: false },
@@ -296,7 +296,6 @@ export async function ContractorsTab({
                 <div className="px-3 py-3 flex flex-col gap-1.5 justify-center">
                   {status === 'trialing' && (
                     <>
-                      <ExtendTrialButton contractorId={c.id} />
                       {!c.subscription?.trialReminder3dSentAt && (
                         <SendReminderButton contractorId={c.id} type="3d" label="Email 3d" />
                       )}

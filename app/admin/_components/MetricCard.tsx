@@ -17,7 +17,7 @@ export function MetricCard({
   return (
     <div className="px-6 py-5">
       <div className="flex items-center justify-between mb-3">
-        <p className="text-xs font-bold uppercase tracking-widest text-stone-500">{label}</p>
+        <p className="text-[10px] font-black uppercase tracking-widest text-stone-500">{label}</p>
         <Icon className="h-4 w-4 text-stone-400" />
       </div>
       <p className="font-barlow font-black text-4xl leading-none text-stone-900">{value}</p>

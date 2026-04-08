@@ -108,23 +108,6 @@ export function ResolveTicketButton({
 
 // ─── Trial ────────────────────────────────────────────────────────────────────
 
-export function ExtendTrialButton({ contractorId }: { contractorId: string }) {
-  const router = useRouter()
-  return (
-    <ActionBtn
-      variant="orange"
-      title="Extend trial by 7 days"
-      onClick={async () => {
-        const res = await fetch(`/api/admin/contractors/${contractorId}/extend-trial`, { method: 'POST' })
-        if (!res.ok) throw new Error()
-        router.refresh()
-      }}
-    >
-      +7 Days
-    </ActionBtn>
-  )
-}
-
 export function SendReminderButton({
   contractorId,
   type,
