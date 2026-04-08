@@ -1,4 +1,3 @@
-import { TabNav } from './_components/TabNav'
 import { OverviewTab } from './_components/OverviewTab'
 import { LeadsTab } from './_components/LeadsTab'
 import { ContractorsTab } from './_components/ContractorsTab'
@@ -27,9 +26,7 @@ export default async function AdminPage({
         <AlertCards />
       </div>
 
-      <TabNav activeTab={tab} />
-
-      <div className="pt-2">
+      <div>
         {tab === 'overview' && <OverviewTab />}
         {tab === 'leads' && <LeadsTab />}
         {tab === 'contractors' && (
