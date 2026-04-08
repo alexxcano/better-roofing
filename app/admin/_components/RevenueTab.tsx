@@ -144,7 +144,13 @@ export async function RevenueTab() {
                         {sub.plan} · ${PLAN_PRICES[sub.plan as keyof typeof PLAN_PRICES]}/mo
                       </p>
                     </div>
-                    <span className="text-xs font-black text-stone-600 border border-stone-300 bg-stone-50 px-2 py-0.5">
+                    <span className={`text-xs font-black border px-2 py-0.5 ${
+                      daysUntil <= 3
+                        ? 'text-red-600 border-red-300 bg-red-50'
+                        : daysUntil <= 7
+                          ? 'text-orange-600 border-orange-300 bg-orange-50'
+                          : 'text-stone-600 border-stone-300 bg-stone-50'
+                    }`}>
                       {daysUntil}d
                     </span>
                   </div>

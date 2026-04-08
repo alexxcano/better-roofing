@@ -50,6 +50,34 @@ function ActionBtn({
 
 // ─── Ticket ───────────────────────────────────────────────────────────────────
 
+export function MarkInProgressButton({
+  ticketId,
+  onDone,
+}: {
+  ticketId: string
+  onDone?: () => void
+}) {
+  const router = useRouter()
+  return (
+    <ActionBtn
+      variant="stone"
+      title="Mark ticket as in progress"
+      onClick={async () => {
+        const res = await fetch(`/api/admin/tickets/${ticketId}/status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'in_progress' }),
+        })
+        if (!res.ok) throw new Error()
+        router.refresh()
+        onDone?.()
+      }}
+    >
+      In Progress
+    </ActionBtn>
+  )
+}
+
 export function ResolveTicketButton({
   ticketId,
   onResolved,
@@ -63,7 +91,11 @@ export function ResolveTicketButton({
       variant="green"
       title="Mark ticket as resolved"
       onClick={async () => {
-        const res = await fetch(`/api/admin/tickets/${ticketId}/resolve`, { method: 'POST' })
+        const res = await fetch(`/api/admin/tickets/${ticketId}/status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'resolved' }),
+        })
         if (!res.ok) throw new Error()
         router.refresh()
         onResolved?.()

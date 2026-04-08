@@ -168,18 +168,23 @@ export async function OverviewTab() {
         </div>
         <div className="px-6 pt-4 pb-3">
           <div className="flex items-end gap-2 h-28">
-            {chartData.map((count, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                {count > 0 && <span className="text-[9px] font-bold text-stone-500">{count}</span>}
-                <div
-                  className={`w-full ${i === chartData.length - 1 ? 'bg-orange-500' : 'bg-stone-300'}`}
-                  style={{ height: `${Math.max((count / maxWeeklyLeads) * 80, count > 0 ? 4 : 2)}px` }}
-                />
-                <span className="text-[9px] text-stone-400 font-semibold">
-                  {i === chartData.length - 1 ? 'now' : `–${8 - i}w`}
-                </span>
-              </div>
-            ))}
+            {chartData.map((count, i) => {
+              const daysBack = (chartData.length - 1 - i) * 7
+              const weekDate = new Date(now.getTime() - daysBack * 24 * 60 * 60 * 1000)
+              const label = daysBack === 0
+                ? 'now'
+                : `${weekDate.getMonth() + 1}/${weekDate.getDate()}`
+              return (
+                <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                  {count > 0 && <span className="text-[9px] font-bold text-stone-500">{count}</span>}
+                  <div
+                    className={`w-full ${i === chartData.length - 1 ? 'bg-orange-500' : 'bg-stone-300'}`}
+                    style={{ height: `${Math.max((count / maxWeeklyLeads) * 80, count > 0 ? 4 : 2)}px` }}
+                  />
+                  <span className="text-[9px] text-stone-400 font-semibold">{label}</span>
+                </div>
+              )
+            })}
           </div>
         </div>
       </div>

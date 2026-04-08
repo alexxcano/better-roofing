@@ -8,7 +8,7 @@ import { AlertCards } from './_components/AlertCards'
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; search?: string; status?: string }>
+  searchParams: Promise<{ tab?: string; search?: string; status?: string; setup?: string }>
 }) {
   const params = await searchParams
   const tab = params.tab || 'overview'
@@ -33,7 +33,7 @@ export default async function AdminPage({
         {tab === 'overview' && <OverviewTab />}
         {tab === 'leads' && <LeadsTab />}
         {tab === 'contractors' && (
-          <ContractorsTab search={params.search?.trim() || ''} status={params.status || ''} />
+          <ContractorsTab search={params.search?.trim() || ''} status={params.status || ''} setup={params.setup || ''} />
         )}
         {tab === 'revenue' && <RevenueTab />}
       </div>

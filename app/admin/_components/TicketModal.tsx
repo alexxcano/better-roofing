@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { X } from 'lucide-react'
-import { ResolveTicketButton } from './AdminActions'
+import { MarkInProgressButton, ResolveTicketButton } from './AdminActions'
 
 export type TicketDetail = {
   id: string
@@ -131,11 +131,16 @@ export function TicketModal({ ticket }: { ticket: TicketDetail }) {
 
             {/* Footer */}
             {ticket.status !== 'resolved' && (
-              <div className="border-t-2 border-stone-200 px-5 py-3 flex items-center justify-between flex-shrink-0 bg-stone-50">
+              <div className="border-t-2 border-stone-200 px-5 py-3 flex items-center justify-between gap-3 flex-shrink-0 bg-stone-50">
                 <p className="text-[10px] text-stone-400 font-semibold uppercase tracking-wide">
-                  Mark as resolved to remove from queue
+                  {ticket.status === 'open' ? 'Assign or resolve this ticket' : 'Close ticket when done'}
                 </p>
-                <ResolveTicketButton ticketId={ticket.id} onResolved={() => setOpen(false)} />
+                <div className="flex gap-2">
+                  {ticket.status === 'open' && (
+                    <MarkInProgressButton ticketId={ticket.id} onDone={() => setOpen(false)} />
+                  )}
+                  <ResolveTicketButton ticketId={ticket.id} onResolved={() => setOpen(false)} />
+                </div>
               </div>
             )}
 
