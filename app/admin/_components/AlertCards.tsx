@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { AlertTriangle, Ticket } from 'lucide-react'
+import { ResolveTicketButton, ExtendTrialButton } from './AdminActions'
 
 export async function AlertCards() {
   const now = new Date()
@@ -25,6 +26,7 @@ export async function AlertCards() {
     const expired = daysLeft <= 0
     return {
       id: sub.id,
+      contractorId: sub.contractorId,
       name: sub.contractor.companyName,
       badge: expired ? 'Expired' : `${daysLeft}d left`,
       variant: expired ? 'red' : 'orange',
@@ -56,17 +58,20 @@ export async function AlertCards() {
             </p>
           ) : (
             trialRows.map((row) => (
-              <div key={row.id} className="px-3 py-2.5 flex items-center justify-between gap-2">
-                <p className="text-xs font-bold text-stone-900 truncate">{row.name}</p>
-                <span
-                  className={`text-[10px] font-black border px-1.5 py-0.5 shrink-0 leading-none ${
-                    row.variant === 'red'
-                      ? 'text-red-600 border-red-300 bg-red-50'
-                      : 'text-orange-600 border-orange-300 bg-orange-50'
-                  }`}
-                >
-                  {row.badge}
-                </span>
+              <div key={row.id} className="px-3 py-2.5 space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-bold text-stone-900 truncate">{row.name}</p>
+                  <span
+                    className={`text-[10px] font-black border px-1.5 py-0.5 shrink-0 leading-none ${
+                      row.variant === 'red'
+                        ? 'text-red-600 border-red-300 bg-red-50'
+                        : 'text-orange-600 border-orange-300 bg-orange-50'
+                    }`}
+                  >
+                    {row.badge}
+                  </span>
+                </div>
+                <ExtendTrialButton contractorId={row.contractorId} />
               </div>
             ))
           )}
@@ -95,13 +100,14 @@ export async function AlertCards() {
             </p>
           ) : (
             openTickets.map((t) => (
-              <div key={t.id} className="px-3 py-2.5">
+              <div key={t.id} className="px-3 py-2.5 space-y-1.5">
                 <p className="text-xs font-bold text-stone-900 truncate">{t.subject}</p>
                 {t.companyName && (
-                  <p className="text-[10px] text-stone-400 font-semibold truncate mt-0.5">
+                  <p className="text-[10px] text-stone-400 font-semibold truncate">
                     {t.companyName}
                   </p>
                 )}
+                <ResolveTicketButton ticketId={t.id} />
               </div>
             ))
           )}

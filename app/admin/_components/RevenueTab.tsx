@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { PLANS } from '@/lib/stripe'
 import { CreditCard, Mail } from 'lucide-react'
 import { MetricCard } from './MetricCard'
+import { SendReminderButton } from './AdminActions'
 
 const PLAN_PRICES = { STARTER: PLANS.STARTER.price, PRO: PLANS.PRO.price }
 
@@ -28,6 +29,7 @@ export async function RevenueTab() {
       where: { status: 'trialing' },
       select: {
         id: true,
+        contractorId: true,
         trialEndsAt: true,
         trialReminder3dSentAt: true,
         trialReminderExpirySentAt: true,
@@ -186,17 +188,21 @@ export async function RevenueTab() {
                         {expired ? 'Expired' : daysLeft !== null ? `${daysLeft}d left` : '—'}
                       </span>
                     </div>
-                    <div className="flex gap-1.5">
-                      <span className={`text-[9px] font-black uppercase tracking-widest border px-1.5 py-0.5 ${
-                        sent3d ? 'text-green-700 border-green-200 bg-green-50' : 'text-stone-400 border-stone-200 bg-stone-50'
-                      }`}>
-                        {sent3d ? '✓' : '—'} 3d reminder
-                      </span>
-                      <span className={`text-[9px] font-black uppercase tracking-widest border px-1.5 py-0.5 ${
-                        sentExpiry ? 'text-green-700 border-green-200 bg-green-50' : 'text-stone-400 border-stone-200 bg-stone-50'
-                      }`}>
-                        {sentExpiry ? '✓' : '—'} expiry reminder
-                      </span>
+                    <div className="flex flex-wrap gap-1.5 items-center">
+                      {sent3d ? (
+                        <span className="text-[9px] font-black uppercase tracking-widest border px-1.5 py-0.5 text-green-700 border-green-200 bg-green-50">
+                          ✓ 3d sent
+                        </span>
+                      ) : (
+                        <SendReminderButton contractorId={sub.contractorId} type="3d" label="Send 3d" />
+                      )}
+                      {sentExpiry ? (
+                        <span className="text-[9px] font-black uppercase tracking-widest border px-1.5 py-0.5 text-green-700 border-green-200 bg-green-50">
+                          ✓ Expiry sent
+                        </span>
+                      ) : (
+                        <SendReminderButton contractorId={sub.contractorId} type="expiry" label="Send Expiry" />
+                      )}
                     </div>
                   </div>
                 )

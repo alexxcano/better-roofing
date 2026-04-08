@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { AlertTriangle } from 'lucide-react'
+import { ExtendTrialButton, SendReminderButton } from './AdminActions'
 
 function SetupDot({ ok, label }: { ok: boolean; label: string }) {
   return (
@@ -135,8 +136,8 @@ export async function ContractorsTab({
         </div>
 
         {/* Column headers */}
-        <div className="grid grid-cols-[1fr_70px_90px_110px_100px_100px] bg-stone-100 border-b-2 border-stone-300">
-          {['Company', 'Leads', 'Plan', 'Status', 'Last Lead', 'Joined'].map((h) => (
+        <div className="grid grid-cols-[1fr_70px_90px_110px_100px_100px_150px] bg-stone-100 border-b-2 border-stone-300">
+          {['Company', 'Leads', 'Plan', 'Status', 'Last Lead', 'Joined', 'Actions'].map((h) => (
             <div key={h} className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-stone-500 border-r border-stone-200 last:border-r-0">
               {h}
             </div>
@@ -177,7 +178,7 @@ export async function ContractorsTab({
             return (
               <div
                 key={c.id}
-                className={`grid grid-cols-[1fr_70px_90px_110px_100px_100px] border-t border-stone-200 hover:bg-stone-50 transition-colors ${i % 2 === 1 ? 'bg-stone-50/50' : ''}`}
+                className={`grid grid-cols-[1fr_70px_90px_110px_100px_100px_150px] border-t border-stone-200 hover:bg-stone-50 transition-colors ${i % 2 === 1 ? 'bg-stone-50/50' : ''}`}
               >
                 <div className="px-4 py-3 border-r border-stone-100">
                   <div className="flex items-center gap-1.5 flex-wrap">
@@ -231,6 +232,28 @@ export async function ContractorsTab({
                   <p className="text-xs text-stone-400 font-semibold">
                     {new Date(c.createdAt).toLocaleDateString()}
                   </p>
+                </div>
+                {/* Actions */}
+                <div className="px-3 py-3 flex flex-col gap-1.5 justify-center">
+                  {status === 'trialing' && (
+                    <>
+                      <ExtendTrialButton contractorId={c.id} />
+                      {!c.subscription?.trialReminder3dSentAt && (
+                        <SendReminderButton contractorId={c.id} type="3d" label="Email 3d" />
+                      )}
+                      {!c.subscription?.trialReminderExpirySentAt && (
+                        <SendReminderButton contractorId={c.id} type="expiry" label="Email Expiry" />
+                      )}
+                    </>
+                  )}
+                  <a
+                    href={`/embed/${c.id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[10px] font-black uppercase tracking-widest border px-2 py-1 text-stone-500 border-stone-200 bg-stone-50 hover:bg-stone-100 transition-colors text-center"
+                  >
+                    Widget ↗
+                  </a>
                 </div>
               </div>
             )
