@@ -1,6 +1,7 @@
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
@@ -13,10 +14,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="min-h-screen bg-stone-50 bg-corrugated">
       <header className="bg-stone-900 text-white px-6 py-4 flex items-center justify-between border-b-2 border-orange-500">
         <div className="flex items-center gap-3">
-          <div className="h-6 w-6 bg-orange-500 flex items-center justify-center rotate-45">
-            <span className="text-white font-black text-[10px] -rotate-45">BR</span>
-          </div>
-          <Link href="/" className="font-barlow font-black text-white uppercase tracking-wide text-base ml-1">
+          <Image src="/Logo-nobg.png" alt="BetterRoofing" width={32} height={32} className="h-8 w-auto" />
+          <Link href="/" className="font-barlow font-black text-white uppercase tracking-wide text-base">
             BetterRoofing
           </Link>
           <span className="text-stone-600 font-bold">/</span>
