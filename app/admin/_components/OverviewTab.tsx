@@ -1,8 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { PLANS } from '@/lib/stripe'
-import { Users, BarChart2, CreditCard, TrendingUp, AlertTriangle, Ticket, CheckCircle } from 'lucide-react'
+import { Users, BarChart2, CreditCard, TrendingUp, CheckCircle } from 'lucide-react'
 import { MetricCard } from './MetricCard'
-import { AlertPanel, type AlertRow } from './AlertPanel'
 
 const PLAN_PRICES: Record<string, number> = {
   STARTER: PLANS.STARTER.price,
@@ -13,7 +12,6 @@ export async function OverviewTab() {
   const now = new Date()
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
   const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000)
-  const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
   const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1)
   const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
 
@@ -27,8 +25,6 @@ export async function OverviewTab() {
     leadsPrev30,
     onboardingCompletedCount,
     dormantCount,
-    trialsExpiringSoon,
-    openTickets,
     signupsThisMonth,
     signupsLastMonth,
     weeklyLeadCounts,
@@ -48,16 +44,6 @@ export async function OverviewTab() {
         createdAt: { lt: thirtyDaysAgo },
         leads: { none: { createdAt: { gte: thirtyDaysAgo } } },
       },
-    }),
-    prisma.subscription.findMany({
-      where: { status: 'trialing', trialEndsAt: { lte: sevenDaysFromNow } },
-      include: { contractor: { select: { companyName: true } } },
-      orderBy: { trialEndsAt: 'asc' },
-    }),
-    prisma.supportTicket.findMany({
-      where: { status: { in: ['open', 'in_progress'] } },
-      orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
-      select: { id: true, subject: true, category: true, companyName: true, status: true },
     }),
     prisma.contractor.count({ where: { createdAt: { gte: startOfThisMonth } } }),
     prisma.contractor.count({ where: { createdAt: { gte: startOfLastMonth, lt: startOfThisMonth } } }),
@@ -87,73 +73,9 @@ export async function OverviewTab() {
       : null
   const chartData = [...weeklyLeadCounts].reverse()
   const maxWeeklyLeads = Math.max(...chartData, 1)
-  const totalOpenTickets = openTickets.length
-
-  const trialRows: AlertRow[] = trialsExpiringSoon.map((sub) => {
-    const daysLeft = Math.ceil(
-      (new Date(sub.trialEndsAt!).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-    )
-    const expired = daysLeft <= 0
-    return {
-      id: sub.id,
-      primary: sub.contractor.companyName,
-      badge: expired ? 'Expired' : `${daysLeft}d left`,
-      badgeVariant: expired ? 'red' : 'orange',
-    }
-  })
-
-  const ticketRows: AlertRow[] = openTickets.map((t) => ({
-    id: t.id,
-    primary: t.subject,
-    secondary: [t.companyName, t.category].filter(Boolean).join(' · '),
-    badge: t.status === 'in_progress' ? 'In Progress' : 'Open',
-    badgeVariant: 'stone',
-  }))
 
   return (
     <div className="space-y-8">
-      {/* Alerts */}
-      <div className="grid grid-cols-2 gap-4">
-        <AlertPanel
-          header={
-            <div className="px-5 py-3 bg-stone-100 border-b border-stone-300 flex items-center gap-2">
-              <AlertTriangle
-                className={`h-3.5 w-3.5 ${trialsExpiringSoon.length > 0 ? 'text-orange-500' : 'text-stone-400'}`}
-              />
-              <p className="text-xs font-black uppercase tracking-widest text-stone-600">
-                Trials Expiring (&lt;7 days)
-              </p>
-              {trialsExpiringSoon.length > 0 && (
-                <span className="text-[10px] font-black text-orange-600 border border-orange-300 bg-orange-50 px-1.5 py-0.5">
-                  {trialsExpiringSoon.length}
-                </span>
-              )}
-            </div>
-          }
-          rows={trialRows}
-          emptyMessage="None expiring soon"
-        />
-        <AlertPanel
-          header={
-            <div className="px-5 py-3 bg-stone-100 border-b border-stone-300 flex items-center gap-2">
-              <Ticket
-                className={`h-3.5 w-3.5 ${totalOpenTickets > 0 ? 'text-stone-600' : 'text-stone-400'}`}
-              />
-              <p className="text-xs font-black uppercase tracking-widest text-stone-600">
-                Open Support Tickets
-              </p>
-              {totalOpenTickets > 0 && (
-                <span className="text-[10px] font-black text-stone-700 border border-stone-300 bg-stone-200 px-1.5 py-0.5">
-                  {totalOpenTickets}
-                </span>
-              )}
-            </div>
-          }
-          rows={ticketRows}
-          emptyMessage="No open tickets"
-        />
-      </div>
-
       {/* Revenue */}
       <div>
         <div className="group relative inline-flex items-center gap-2 mb-2 cursor-default select-none">

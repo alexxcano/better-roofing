@@ -3,6 +3,7 @@ import { OverviewTab } from './_components/OverviewTab'
 import { LeadsTab } from './_components/LeadsTab'
 import { ContractorsTab } from './_components/ContractorsTab'
 import { RevenueTab } from './_components/RevenueTab'
+import { AlertCards } from './_components/AlertCards'
 
 export default async function AdminPage({
   searchParams,
@@ -14,13 +15,16 @@ export default async function AdminPage({
 
   return (
     <div className="space-y-6">
-      <div className="border-l-4 border-orange-500 pl-4">
-        <h1 className="font-barlow font-black text-3xl uppercase text-stone-900 leading-none">
-          Admin Dashboard
-        </h1>
-        <p className="text-stone-500 text-sm font-semibold mt-1 uppercase tracking-wide">
-          Platform overview
-        </p>
+      <div className="flex items-start justify-between gap-6">
+        <div className="border-l-4 border-orange-500 pl-4">
+          <h1 className="font-barlow font-black text-3xl uppercase text-stone-900 leading-none">
+            Admin Dashboard
+          </h1>
+          <p className="text-stone-500 text-sm font-semibold mt-1 uppercase tracking-wide">
+            Platform overview
+          </p>
+        </div>
+        <AlertCards />
       </div>
 
       <TabNav activeTab={tab} />
