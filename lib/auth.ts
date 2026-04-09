@@ -80,13 +80,18 @@ const nextAuth = NextAuth({
   ],
   callbacks: {
     async signIn({ user, account }) {
-      // Bootstrap contractor for first-time Google sign-ins
+      // Bootstrap contractor for first-time Google sign-ins.
+      // We check the DB directly rather than relying on the user object since
+      // PrismaAdapter may not have flushed the User row before this callback fires.
       if (account?.provider === 'google' && user.id) {
         const dbUser = await prisma.user.findUnique({
           where: { id: user.id },
           select: { contractorId: true },
         })
-        if (dbUser && !dbUser.contractorId) {
+        // dbUser may be null on the very first sign-in if the adapter hasn't written
+        // the row yet — fall back to treating a missing contractorId as a new user.
+        const needsBootstrap = !dbUser || !dbUser.contractorId
+        if (needsBootstrap) {
           const contractor = await prisma.contractor.create({
             data: {
               companyName: user.name ?? 'My Roofing Company',
