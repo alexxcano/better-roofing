@@ -82,17 +82,16 @@ const nextAuth = NextAuth({
   callbacks: {
     async signIn({ user, account }) {
       // Bootstrap contractor for first-time Google sign-ins.
-      // We check the DB directly rather than relying on the user object since
-      // PrismaAdapter may not have flushed the User row before this callback fires.
-      if (account?.provider === 'google' && user.id) {
+      // We look up by email (not user.id) because in Auth.js v5 the user.id in this
+      // callback is a provisional provider ID, not the DB CUID the adapter will assign.
+      // If the user row doesn't exist yet (race condition on very first sign-in),
+      // we skip here — the jwt callback will finish bootstrap once the adapter commits.
+      if (account?.provider === 'google' && user.email) {
         const dbUser = await prisma.user.findUnique({
-          where: { id: user.id },
-          select: { contractorId: true },
+          where: { email: user.email },
+          select: { id: true, contractorId: true },
         })
-        // dbUser may be null on the very first sign-in if the adapter hasn't written
-        // the row yet — fall back to treating a missing contractorId as a new user.
-        const needsBootstrap = !dbUser || !dbUser.contractorId
-        if (needsBootstrap) {
+        if (dbUser && !dbUser.contractorId) {
           try {
             const contractor = await prisma.contractor.create({
               data: {
@@ -101,7 +100,7 @@ const nextAuth = NextAuth({
               },
             })
             await prisma.user.update({
-              where: { id: user.id },
+              where: { id: dbUser.id },
               data: { contractorId: contractor.id },
             })
             await prisma.subscription.create({
@@ -114,7 +113,7 @@ const nextAuth = NextAuth({
             })
           } catch (err) {
             await logger.error('auth.bootstrap', err, {
-              userId: user.id,
+              userId: dbUser.id,
               meta: { email: user.email, name: user.name },
             })
           }
@@ -128,13 +127,42 @@ const nextAuth = NextAuth({
         token.role = (user as any).role
         token.contractorId = (user as any).contractorId
       }
-      // Re-fetch contractorId for Google users on first sign-in (it's set after jwt fires)
+      // On first sign-in: if the user has no contractor yet (signIn callback couldn't
+      // bootstrap because the user row didn't exist at that point), do it here.
+      // By jwt time the adapter has committed the User row so token.id is the real CUID.
       if (trigger === 'signIn' && token.id && !token.contractorId) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
-          select: { contractorId: true, role: true },
+          select: { id: true, contractorId: true, role: true },
         })
-        if (dbUser) {
+        if (dbUser && !dbUser.contractorId) {
+          try {
+            const contractor = await prisma.contractor.create({
+              data: {
+                companyName: token.name ?? 'My Roofing Company',
+                pricingSettings: { create: {} },
+              },
+            })
+            await prisma.user.update({
+              where: { id: dbUser.id },
+              data: { contractorId: contractor.id },
+            })
+            await prisma.subscription.create({
+              data: {
+                contractorId: contractor.id,
+                plan: 'PRO',
+                status: 'trialing',
+                trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+              },
+            })
+            token.contractorId = contractor.id
+          } catch (err) {
+            await logger.error('auth.bootstrap', err, {
+              userId: dbUser.id,
+              meta: { email: token.email, name: token.name },
+            })
+          }
+        } else if (dbUser) {
           token.contractorId = dbUser.contractorId
           token.role = dbUser.role
         }
