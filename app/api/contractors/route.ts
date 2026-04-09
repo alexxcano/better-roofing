@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { logger } from '@/lib/logger'
 import { z } from 'zod'
 
 const signupSchema = z.object({
@@ -67,7 +68,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ userId: result.user.id, contractorId: result.contractor.id }, { status: 201 })
   } catch (error) {
-    console.error('Signup error:', error)
+    await logger.error('api.contractors.signup', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

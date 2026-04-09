@@ -6,6 +6,7 @@ import { calculateLeadScore } from '@/lib/leadScore'
 import { checkServiceArea } from '@/lib/serviceArea'
 import { generateLeadBrief, generateLeadDrafts } from '@/lib/generateLeadEmail'
 import { leadsRatelimit } from '@/lib/ratelimit'
+import { logger } from '@/lib/logger'
 import { z } from 'zod'
 import dns from 'dns'
 
@@ -169,13 +170,16 @@ export async function POST(req: NextRequest) {
     }
     if (contractor.webhookUrl) {
       void isSafeWebhookUrl(contractor.webhookUrl).then((safe) => {
-        if (!safe) { console.warn('[Webhook] Blocked unsafe URL:', contractor.webhookUrl); return }
+        if (!safe) {
+          void logger.warn('api.leads.webhook', 'Blocked unsafe URL', { meta: { url: contractor.webhookUrl, contractorId } })
+          return
+        }
         return fetch(contractor.webhookUrl!, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(lead),
           signal: AbortSignal.timeout(5000),
-        }).catch((err) => console.error('[Webhook] Delivery failed:', err))
+        }).catch((err) => logger.error('api.leads.webhook', err, { meta: { contractorId } }))
       })
     }
 
@@ -196,7 +200,7 @@ export async function POST(req: NextRequest) {
         where: { id: lead.id },
         data: { aiLeadBrief: brief || null },
       }))
-      .catch((err) => console.error('[AI Brief] Generation failed:', err))
+      .catch((err) => logger.error('api.leads.ai_brief', err, { meta: { leadId: lead.id, contractorId } }))
 
     // AI email + SMS drafts — Pro only (fire and forget)
     if (subscription.plan === 'PRO') {
@@ -208,12 +212,12 @@ export async function POST(req: NextRequest) {
             aiSmsDraft: sms || null,
           },
         }))
-        .catch((err) => console.error('[AI Drafts] Generation failed:', err))
+        .catch((err) => logger.error('api.leads.ai_drafts', err, { meta: { leadId: lead.id, contractorId } }))
     }
 
     return NextResponse.json(lead, { status: 201 })
   } catch (error) {
-    console.error('Create lead error:', error)
+    await logger.error('api.leads', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -10,7 +10,7 @@ export async function ErrorsTab() {
     prisma.errorLog.groupBy({
       by: ['context'],
       _count: { _all: true },
-      orderBy: { _count: { _all: 'desc' } },
+      orderBy: { _count: { context: 'desc' } },
     }),
   ])
 

@@ -1,5 +1,6 @@
 import { Resend } from 'resend'
 import type { Lead } from '@prisma/client'
+import { logger } from '@/lib/logger'
 
 export type TrialReminderType = '3d' | 'expiry'
 
@@ -169,7 +170,7 @@ export async function sendLeadNotification({
       `,
     })
   } catch (err) {
-    console.error('[Resend] Failed to send lead notification:', err)
+    await logger.error('resend.lead_notification', err, { meta: { toEmail, companyName } })
   }
 }
 
@@ -266,7 +267,7 @@ export async function sendWeeklyReport({
       `,
     })
   } catch (err) {
-    console.error('[Resend] Failed to send weekly report:', err)
+    await logger.error('resend.weekly_report', err, { meta: { toEmail, companyName } })
   }
 }
 
@@ -357,6 +358,6 @@ export async function sendTrialReminder({
       `,
     })
   } catch (err) {
-    console.error('[Resend] Failed to send trial reminder:', err)
+    await logger.error('resend.trial_reminder', err, { meta: { toEmail, companyName, type } })
   }
 }

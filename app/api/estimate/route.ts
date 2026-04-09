@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { calculateEstimate } from '@/lib/estimate'
 import { estimateRatelimit } from '@/lib/ratelimit'
+import { logger } from '@/lib/logger'
 import { z } from 'zod'
 
 const estimateSchema = z.object({
@@ -55,7 +56,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(result)
   } catch (error) {
-    console.error('Estimate error:', error)
+    await logger.error('api.estimate', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
