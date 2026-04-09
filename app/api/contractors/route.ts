@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
       return { user, contractor }
     })
 
-    await sendTelegramMessage(signupAlert(result.user.name ?? 'Unknown', result.user.email, 'Email', result.contractor.companyName))
+    await sendTelegramMessage(signupAlert(result.user.name ?? 'Unknown', result.user.email ?? '', 'Email', result.contractor.companyName))
 
     return NextResponse.json({ userId: result.user.id, contractorId: result.contractor.id }, { status: 201 })
   } catch (error) {
