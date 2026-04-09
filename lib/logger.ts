@@ -1,28 +1,11 @@
 import { prisma } from '@/lib/prisma'
+import { sendTelegramMessage, errorAlert } from '@/lib/telegram'
 
 type LogLevel = 'error' | 'warn'
 
 interface LogOptions {
   userId?: string
   meta?: Record<string, unknown>
-}
-
-async function sendTelegramAlert(context: string, message: string) {
-  const token = process.env.TELEGRAM_BOT_TOKEN
-  const chatId = process.env.TELEGRAM_CHAT_ID
-  if (!token || !chatId) return
-
-  const text = `🚨 *Error logged*\n*Context:* \`${context}\`\n*Message:* ${message}`
-
-  try {
-    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'Markdown' }),
-    })
-  } catch {
-    console.error('[logger] Failed to send Telegram alert')
-  }
 }
 
 async function log(level: LogLevel, context: string, error: unknown, options: LogOptions = {}) {
@@ -53,7 +36,7 @@ async function log(level: LogLevel, context: string, error: unknown, options: Lo
   }
 
   if (level === 'error') {
-    await sendTelegramAlert(context, message)
+    await sendTelegramMessage(errorAlert(context, message))
   }
 }
 

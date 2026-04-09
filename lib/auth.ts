@@ -5,6 +5,7 @@ import GoogleProvider from 'next-auth/providers/google'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 import { logger } from '@/lib/logger'
+import { sendTelegramMessage, signupAlert } from '@/lib/telegram'
 import { z } from 'zod'
 
 const loginSchema = z.object({
@@ -35,46 +36,53 @@ const nextAuth = NextAuth({
 
         const { email, password } = parsed.data
 
-        const user = await prisma.user.findUnique({ where: { email } })
+        try {
+          const user = await prisma.user.findUnique({ where: { email } })
 
-        if (!user || !user.password) return null
+          if (!user || !user.password) return null
 
-        // Check lockout
-        if (user.loginLockedUntil && user.loginLockedUntil > new Date()) {
-          const minutesLeft = Math.ceil((user.loginLockedUntil.getTime() - Date.now()) / 60000)
-          throw new Error(`Too many failed attempts. Try again in ${minutesLeft} minute${minutesLeft === 1 ? '' : 's'}.`)
-        }
+          // Check lockout
+          if (user.loginLockedUntil && user.loginLockedUntil > new Date()) {
+            const minutesLeft = Math.ceil((user.loginLockedUntil.getTime() - Date.now()) / 60000)
+            throw new Error(`Too many failed attempts. Try again in ${minutesLeft} minute${minutesLeft === 1 ? '' : 's'}.`)
+          }
 
-        const isValid = await bcrypt.compare(password, user.password)
+          const isValid = await bcrypt.compare(password, user.password)
 
-        if (!isValid) {
-          const attempts = user.failedLoginAttempts + 1
-          const locked = attempts >= 5
+          if (!isValid) {
+            const attempts = user.failedLoginAttempts + 1
+            const locked = attempts >= 5
+            await prisma.user.update({
+              where: { id: user.id },
+              data: {
+                failedLoginAttempts: attempts,
+                loginLockedUntil: locked ? new Date(Date.now() + 15 * 60 * 1000) : null,
+              },
+            })
+            if (locked) {
+              throw new Error('Too many failed attempts. Try again in 15 minutes.')
+            }
+            return null
+          }
+
+          // Success — reset counters
           await prisma.user.update({
             where: { id: user.id },
-            data: {
-              failedLoginAttempts: attempts,
-              loginLockedUntil: locked ? new Date(Date.now() + 15 * 60 * 1000) : null,
-            },
+            data: { failedLoginAttempts: 0, loginLockedUntil: null },
           })
-          if (locked) {
-            throw new Error('Too many failed attempts. Try again in 15 minutes.')
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            contractorId: user.contractorId,
           }
+        } catch (err) {
+          // Re-throw user-facing errors (lockout messages) as-is
+          if (err instanceof Error && err.message.startsWith('Too many failed attempts')) throw err
+          await logger.error('auth.credentials', err, { meta: { email } })
           return null
-        }
-
-        // Success — reset counters
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { failedLoginAttempts: 0, loginLockedUntil: null },
-        })
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          contractorId: user.contractorId,
         }
       },
     }),
@@ -111,6 +119,7 @@ const nextAuth = NextAuth({
                 trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
               },
             })
+            await sendTelegramMessage(signupAlert(user.name ?? 'Unknown', user.email, 'Google'))
           } catch (err) {
             await logger.error('auth.bootstrap', err, {
               userId: dbUser.id,
@@ -156,6 +165,7 @@ const nextAuth = NextAuth({
               },
             })
             token.contractorId = contractor.id
+            await sendTelegramMessage(signupAlert(token.name ?? 'Unknown', token.email ?? '', 'Google'))
           } catch (err) {
             await logger.error('auth.bootstrap', err, {
               userId: dbUser.id,

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { logger } from '@/lib/logger'
+import { sendTelegramMessage, signupAlert } from '@/lib/telegram'
 import { z } from 'zod'
 
 const signupSchema = z.object({
@@ -65,6 +66,8 @@ export async function POST(req: NextRequest) {
 
       return { user, contractor }
     })
+
+    await sendTelegramMessage(signupAlert(result.user.name ?? 'Unknown', result.user.email, 'Email', result.contractor.companyName))
 
     return NextResponse.json({ userId: result.user.id, contractorId: result.contractor.id }, { status: 201 })
   } catch (error) {
