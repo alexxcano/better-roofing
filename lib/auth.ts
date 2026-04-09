@@ -4,6 +4,7 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
+import { logger } from '@/lib/logger'
 import { z } from 'zod'
 
 const loginSchema = z.object({
@@ -92,24 +93,31 @@ const nextAuth = NextAuth({
         // the row yet — fall back to treating a missing contractorId as a new user.
         const needsBootstrap = !dbUser || !dbUser.contractorId
         if (needsBootstrap) {
-          const contractor = await prisma.contractor.create({
-            data: {
-              companyName: user.name ?? 'My Roofing Company',
-              pricingSettings: { create: {} },
-            },
-          })
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { contractorId: contractor.id },
-          })
-          await prisma.subscription.create({
-            data: {
-              contractorId: contractor.id,
-              plan: 'PRO',
-              status: 'trialing',
-              trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-            },
-          })
+          try {
+            const contractor = await prisma.contractor.create({
+              data: {
+                companyName: user.name ?? 'My Roofing Company',
+                pricingSettings: { create: {} },
+              },
+            })
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { contractorId: contractor.id },
+            })
+            await prisma.subscription.create({
+              data: {
+                contractorId: contractor.id,
+                plan: 'PRO',
+                status: 'trialing',
+                trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+              },
+            })
+          } catch (err) {
+            await logger.error('auth.bootstrap', err, {
+              userId: user.id,
+              meta: { email: user.email, name: user.name },
+            })
+          }
         }
       }
       return true

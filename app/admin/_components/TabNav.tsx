@@ -7,6 +7,7 @@ const TABS = [
   { id: 'leads',        label: 'Leads'        },
   { id: 'contractors',  label: 'Contractors'  },
   { id: 'revenue',      label: 'Revenue'      },
+  { id: 'errors',       label: 'Errors'       },
 ]
 
 export function TabNav() {

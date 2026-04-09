@@ -8,7 +8,7 @@ import { TabNav } from './_components/TabNav'
 function TabNavFallback() {
   return (
     <nav className="flex items-stretch h-full">
-      {['Overview', 'Leads', 'Contractors', 'Revenue'].map((label) => (
+      {['Overview', 'Leads', 'Contractors', 'Revenue', 'Errors'].map((label) => (
         <div
           key={label}
           className="px-5 flex items-center text-xs font-black uppercase tracking-widest text-stone-500"

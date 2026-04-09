@@ -199,6 +199,21 @@ model Subscription {
   contractor Contractor @relation(fields: [contractorId], references: [id], onDelete: Cascade)
 }
 
+model ErrorLog {
+  id        String   @id @default(cuid())
+  level     String   @default("error") // error | warn
+  context   String   // e.g. "auth.bootstrap", "api.leads"
+  message   String   @db.Text
+  stack     String?  @db.Text
+  userId    String?
+  meta      String?  @db.Text // JSON string for extra context
+  createdAt DateTime @default(now())
+
+  @@index([level])
+  @@index([context])
+  @@index([createdAt])
+}
+
 model SupportTicket {
   id           String   @id @default(cuid())
   contractorId String?
