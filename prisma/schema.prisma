@@ -200,18 +200,21 @@ model Subscription {
 }
 
 model ErrorLog {
-  id        String   @id @default(cuid())
-  level     String   @default("error") // error | warn
-  context   String   // e.g. "auth.bootstrap", "api.leads"
-  message   String   @db.Text
-  stack     String?  @db.Text
-  userId    String?
-  meta      String?  @db.Text // JSON string for extra context
-  createdAt DateTime @default(now())
+  id         String    @id @default(cuid())
+  level      String    @default("error") // error | warn
+  context    String    // e.g. "auth.bootstrap", "api.leads"
+  message    String    @db.Text
+  stack      String?   @db.Text
+  userId     String?
+  meta       String?   @db.Text // JSON string for extra context
+  status     String    @default("open") // open | resolved | ignored
+  resolvedAt DateTime?
+  createdAt  DateTime  @default(now())
 
   @@index([level])
   @@index([context])
   @@index([createdAt])
+  @@index([status])
 }
 
 model SupportTicket {
