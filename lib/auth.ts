@@ -23,9 +23,6 @@ const nextAuth = NextAuth({
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      // The product offers password and Google sign-in on the same account screens,
-      // so allow verified Google emails to attach to an existing same-email user.
-      allowDangerousEmailAccountLinking: true,
     }),
     CredentialsProvider({
       name: 'credentials',
@@ -96,86 +93,26 @@ const nextAuth = NextAuth({
     }),
   ],
   callbacks: {
-    async signIn({ user, account }) {
-      if (account?.provider === 'google' && user.email) {
-        // Guard: if this Google providerAccountId is already linked to a DIFFERENT
-        // user (email mismatch), block the sign-in. This prevents an active session
-        // for user A from silently absorbing a Google account that belongs to user B.
-        if (account.providerAccountId) {
-          const existingAccount = await prisma.account.findUnique({
-            where: {
-              provider_providerAccountId: {
-                provider: 'google',
-                providerAccountId: account.providerAccountId,
-              },
-            },
-            select: { user: { select: { email: true } } },
-          })
-          if (existingAccount && existingAccount.user.email !== user.email) {
-            await logger.error('auth.signIn', new Error('Google account linked to mismatched user'), {
-              meta: { providerAccountId: account.providerAccountId, googleEmail: user.email, linkedEmail: existingAccount.user.email },
-            })
-            return false
-          }
-        }
-
-        // Bootstrap contractor for first-time Google sign-ins.
-        // We look up by email (not user.id) because in Auth.js v5 the user.id in this
-        // callback is a provisional provider ID, not the DB CUID the adapter will assign.
-        // If the user row doesn't exist yet (race condition on very first sign-in),
-        // we skip here — the jwt callback will finish bootstrap once the adapter commits.
-        const dbUser = await prisma.user.findUnique({
-          where: { email: user.email },
-          select: { id: true, contractorId: true, role: true },
-        })
-        // Never bootstrap a contractor for ADMIN users.
-        if (dbUser && !dbUser.contractorId && dbUser.role !== 'ADMIN') {
-          try {
-            const contractor = await prisma.contractor.create({
-              data: {
-                companyName: user.name ?? 'My Roofing Company',
-                pricingSettings: { create: {} },
-              },
-            })
-            await prisma.user.update({
-              where: { id: dbUser.id },
-              data: { contractorId: contractor.id },
-            })
-            await prisma.subscription.create({
-              data: {
-                contractorId: contractor.id,
-                plan: 'PRO',
-                status: 'trialing',
-                trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-              },
-            })
-            await sendTelegramMessage(signupAlert(user.name ?? 'Unknown', user.email, 'Google'))
-          } catch (err) {
-            await logger.error('auth.bootstrap', err, {
-              userId: dbUser.id,
-              meta: { email: user.email, name: user.name },
-            })
-          }
-        }
-      }
-      return true
-    },
     async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id
         token.role = (user as any).role
         token.contractorId = (user as any).contractorId
       }
-      // On first sign-in: if the user has no contractor yet (signIn callback couldn't
-      // bootstrap because the user row didn't exist at that point), do it here.
-      // By jwt time the adapter has committed the User row so token.id is the real CUID.
+      // On first sign-in: PrismaAdapter has committed the user row by the time jwt
+      // fires, so token.id is always the real DB CUID here. Credentials users already
+      // have contractorId set above via authorize; only Google sign-ins need bootstrap.
       if (trigger === 'signIn' && token.id && !token.contractorId) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
           select: { id: true, contractorId: true, role: true },
         })
-        // Never bootstrap a contractor for ADMIN users.
-        if (dbUser && !dbUser.contractorId && dbUser.role !== 'ADMIN') {
+        if (dbUser?.contractorId) {
+          // Returning Google user — sync to token.
+          token.contractorId = dbUser.contractorId
+          token.role = dbUser.role
+        } else if (dbUser && dbUser.role !== 'ADMIN') {
+          // First Google sign-in — bootstrap contractor + subscription atomically.
           try {
             const contractor = await prisma.contractor.create({
               data: {
@@ -183,19 +120,19 @@ const nextAuth = NextAuth({
                 pricingSettings: { create: {} },
               },
             })
-            await prisma.user.update({
-              where: { id: dbUser.id },
-              data: { contractorId: contractor.id },
-            })
-            await prisma.subscription.create({
-              data: {
-                contractorId: contractor.id,
-                plan: 'PRO',
-                status: 'trialing',
-                trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-              },
-            })
+            await prisma.$transaction([
+              prisma.user.update({ where: { id: dbUser.id }, data: { contractorId: contractor.id } }),
+              prisma.subscription.create({
+                data: {
+                  contractorId: contractor.id,
+                  plan: 'PRO',
+                  status: 'trialing',
+                  trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+                },
+              }),
+            ])
             token.contractorId = contractor.id
+            token.role = dbUser.role
             await sendTelegramMessage(signupAlert(token.name ?? 'Unknown', token.email ?? '', 'Google'))
           } catch (err) {
             await logger.error('auth.bootstrap', err, {
@@ -203,9 +140,6 @@ const nextAuth = NextAuth({
               meta: { email: token.email, name: token.name },
             })
           }
-        } else if (dbUser) {
-          token.contractorId = dbUser.contractorId
-          token.role = dbUser.role
         }
       }
       return token
