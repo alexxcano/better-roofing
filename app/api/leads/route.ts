@@ -151,6 +151,8 @@ export async function POST(req: NextRequest) {
       outOfArea,
     })
 
+    const isDemo = contractorId === process.env.NEXT_PUBLIC_DEMO_CONTRACTOR_ID
+
     const lead = await prisma.lead.create({
       data: {
         contractorId,
@@ -160,59 +162,63 @@ export async function POST(req: NextRequest) {
         locationId: nearestLocationId,
         lat,
         lng,
+        isDemo,
         ...rest,
       },
     })
 
-    // Side-effects: run in background, don't block the widget response
-    if (contractor.notificationEmail) {
-      void sendLeadNotification({ lead, toEmail: contractor.notificationEmail, companyName: contractor.companyName })
-    }
-    if (contractor.webhookUrl) {
-      void isSafeWebhookUrl(contractor.webhookUrl).then((safe) => {
-        if (!safe) {
-          void logger.warn('api.leads.webhook', 'Blocked unsafe URL', { meta: { url: contractor.webhookUrl, contractorId } })
-          return
-        }
-        return fetch(contractor.webhookUrl!, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(lead),
-          signal: AbortSignal.timeout(5000),
-        }).catch((err) => logger.error('api.leads.webhook', err, { meta: { contractorId } }))
-      })
-    }
+    // Skip all side-effects for demo leads
+    if (!isDemo) {
+      // Side-effects: run in background, don't block the widget response
+      if (contractor.notificationEmail) {
+        void sendLeadNotification({ lead, toEmail: contractor.notificationEmail, companyName: contractor.companyName })
+      }
+      if (contractor.webhookUrl) {
+        void isSafeWebhookUrl(contractor.webhookUrl).then((safe) => {
+          if (!safe) {
+            void logger.warn('api.leads.webhook', 'Blocked unsafe URL', { meta: { url: contractor.webhookUrl, contractorId } })
+            return
+          }
+          return fetch(contractor.webhookUrl!, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(lead),
+            signal: AbortSignal.timeout(5000),
+          }).catch((err) => logger.error('api.leads.webhook', err, { meta: { contractorId } }))
+        })
+      }
 
-    const aiInput = {
-      companyName: contractor.companyName,
-      leadName: lead.name,
-      address: lead.address,
-      insuranceClaim: lead.insuranceClaim,
-      materialType: lead.materialType,
-      roofSquares: lead.roofSquares,
-      estimateLow: lead.estimateLow,
-      estimateHigh: lead.estimateHigh,
-    }
+      const aiInput = {
+        companyName: contractor.companyName,
+        leadName: lead.name,
+        address: lead.address,
+        insuranceClaim: lead.insuranceClaim,
+        materialType: lead.materialType,
+        roofSquares: lead.roofSquares,
+        estimateLow: lead.estimateLow,
+        estimateHigh: lead.estimateHigh,
+      }
 
-    // AI brief — all plans (fire and forget)
-    void generateLeadBrief(aiInput)
-      .then((brief) => prisma.lead.update({
-        where: { id: lead.id },
-        data: { aiLeadBrief: brief || null },
-      }))
-      .catch((err) => logger.error('api.leads.ai_brief', err, { meta: { leadId: lead.id, contractorId } }))
-
-    // AI email + SMS drafts — Pro only (fire and forget)
-    if (subscription.plan === 'PRO') {
-      void generateLeadDrafts(aiInput)
-        .then(({ email, sms }) => prisma.lead.update({
+      // AI brief — all plans (fire and forget)
+      void generateLeadBrief(aiInput)
+        .then((brief) => prisma.lead.update({
           where: { id: lead.id },
-          data: {
-            aiEmailDraft: email || null,
-            aiSmsDraft: sms || null,
-          },
+          data: { aiLeadBrief: brief || null },
         }))
-        .catch((err) => logger.error('api.leads.ai_drafts', err, { meta: { leadId: lead.id, contractorId } }))
+        .catch((err) => logger.error('api.leads.ai_brief', err, { meta: { leadId: lead.id, contractorId } }))
+
+      // AI email + SMS drafts — Pro only (fire and forget)
+      if (subscription.plan === 'PRO') {
+        void generateLeadDrafts(aiInput)
+          .then(({ email, sms }) => prisma.lead.update({
+            where: { id: lead.id },
+            data: {
+              aiEmailDraft: email || null,
+              aiSmsDraft: sms || null,
+            },
+          }))
+          .catch((err) => logger.error('api.leads.ai_drafts', err, { meta: { leadId: lead.id, contractorId } }))
+      }
     }
 
     return NextResponse.json(lead, { status: 201 })

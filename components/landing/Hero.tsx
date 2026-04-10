@@ -31,6 +31,9 @@ export function Hero() {
                 Start Capturing Leads Free
                 <ArrowRight className="h-4 w-4" />
               </Link>
+              <Link href="#live-demo" className="btn btn-ghost px-8 py-4 text-base" onClick={() => trackEvent('cta_click', { location: 'hero_demo' })}>
+                See Live Demo
+              </Link>
             </div>
 
             <div className="flex flex-col gap-2">

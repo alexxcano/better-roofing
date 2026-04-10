@@ -1,27 +1,29 @@
 export function CinemaDemo() {
+  const demoId = process.env.NEXT_PUBLIC_DEMO_CONTRACTOR_ID
+
   return (
-    <section className="py-24 bg-stone-900 border-y-2 border-stone-700">
+    <section id="live-demo" className="py-24 bg-stone-900 border-y-2 border-stone-700">
       <div className="container max-w-6xl mx-auto px-4">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
+        <div className="grid md:grid-cols-2 gap-12 items-start">
 
           {/* Copy */}
-          <div>
+          <div className="md:pt-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="h-1 w-10 bg-orange-500" />
-              <span className="text-orange-500 text-sm font-black uppercase tracking-widest">Live Demo</span>
+              <span className="text-orange-500 text-sm font-black uppercase tracking-widest">Try It Right Now</span>
             </div>
             <h2 className="font-barlow font-black text-5xl md:text-6xl text-white uppercase leading-none mb-5">
-              We Scan<br />
-              The Home<br />
-              <span className="text-orange-500">From Space</span>
+              This Is What<br />
+              Your Homeowners<br />
+              <span className="text-orange-500">Will See</span>
             </h2>
             <p className="text-stone-400 text-lg leading-relaxed mb-6">
-              The moment a homeowner enters their address, BetterRoofing pulls a live satellite image, measures the roof footprint, and detects the slope — automatically. No manual input. No guesswork.
+              Enter any US address below and get a real roof estimate — satellite measurement, slope detection, and instant pricing. This is the exact widget your site visitors will use.
             </p>
             <ul className="space-y-3">
               {[
-                'Roof area measured from satellite imagery',
-                'Slope detected from 3D building data',
+                'Live satellite roof measurement',
+                'Slope auto-detected from 3D data',
                 'Estimate calculated in under 10 seconds',
               ].map((item) => (
                 <li key={item} className="flex items-center gap-3 text-stone-300 text-sm font-semibold">
@@ -32,9 +34,9 @@ export function CinemaDemo() {
             </ul>
           </div>
 
-          {/* Video frame */}
+          {/* Live widget frame */}
           <div className="relative">
-            <div className="border-2 border-stone-600 bg-stone-800 shadow-2xl">
+            <div className="border-2 border-stone-600 bg-stone-800 shadow-2xl overflow-hidden">
               {/* Browser chrome */}
               <div className="flex items-center gap-2 px-3 py-2 border-b border-stone-600 bg-stone-700">
                 <div className="flex gap-1.5">
@@ -43,22 +45,24 @@ export function CinemaDemo() {
                   <div className="h-2.5 w-2.5 rounded-full bg-stone-500" />
                 </div>
                 <div className="flex-1 mx-3 bg-stone-600 rounded px-3 py-0.5">
-                  <span className="text-stone-400 text-[10px] font-mono">betterroofing.co/estimate</span>
+                  <span className="text-stone-400 text-[10px] font-mono">yoursite.com — live demo</span>
                 </div>
               </div>
 
-              {/* Video */}
-              <div className="relative bg-[#050a14]" style={{ aspectRatio: '16/9' }}>
-                <video
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  className="absolute inset-0 w-full h-full object-cover"
-                >
-                  <source src="/cinema-demo.mp4" type="video/mp4" />
-                </video>
-              </div>
+              {/* Iframe */}
+              {demoId ? (
+                <iframe
+                  src={`/embed/${demoId}`}
+                  className="w-full"
+                  style={{ height: '620px', border: 'none' }}
+                  title="BetterRoofing Live Demo"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="flex items-center justify-center bg-stone-800 text-stone-500 text-sm" style={{ height: '620px' }}>
+                  Demo not configured
+                </div>
+              )}
             </div>
 
             {/* Glow */}

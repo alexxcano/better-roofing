@@ -144,6 +144,7 @@ model Lead {
   aiLeadBrief   String? @db.Text
   // Pipeline
   status        String  @default("new") // new | contacted | quoted | won | lost
+  isDemo        Boolean  @default(false)
   createdAt     DateTime @default(now())
 
   contractor Contractor @relation(fields: [contractorId], references: [id], onDelete: Cascade)
