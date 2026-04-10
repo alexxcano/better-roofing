@@ -89,17 +89,39 @@ const nextAuth = NextAuth({
   ],
   callbacks: {
     async signIn({ user, account }) {
-      // Bootstrap contractor for first-time Google sign-ins.
-      // We look up by email (not user.id) because in Auth.js v5 the user.id in this
-      // callback is a provisional provider ID, not the DB CUID the adapter will assign.
-      // If the user row doesn't exist yet (race condition on very first sign-in),
-      // we skip here — the jwt callback will finish bootstrap once the adapter commits.
       if (account?.provider === 'google' && user.email) {
+        // Guard: if this Google providerAccountId is already linked to a DIFFERENT
+        // user (email mismatch), block the sign-in. This prevents an active session
+        // for user A from silently absorbing a Google account that belongs to user B.
+        if (account.providerAccountId) {
+          const existingAccount = await prisma.account.findUnique({
+            where: {
+              provider_providerAccountId: {
+                provider: 'google',
+                providerAccountId: account.providerAccountId,
+              },
+            },
+            select: { user: { select: { email: true } } },
+          })
+          if (existingAccount && existingAccount.user.email !== user.email) {
+            await logger.error('auth.signIn', new Error('Google account linked to mismatched user'), {
+              meta: { providerAccountId: account.providerAccountId, googleEmail: user.email, linkedEmail: existingAccount.user.email },
+            })
+            return false
+          }
+        }
+
+        // Bootstrap contractor for first-time Google sign-ins.
+        // We look up by email (not user.id) because in Auth.js v5 the user.id in this
+        // callback is a provisional provider ID, not the DB CUID the adapter will assign.
+        // If the user row doesn't exist yet (race condition on very first sign-in),
+        // we skip here — the jwt callback will finish bootstrap once the adapter commits.
         const dbUser = await prisma.user.findUnique({
           where: { email: user.email },
-          select: { id: true, contractorId: true },
+          select: { id: true, contractorId: true, role: true },
         })
-        if (dbUser && !dbUser.contractorId) {
+        // Never bootstrap a contractor for ADMIN users.
+        if (dbUser && !dbUser.contractorId && dbUser.role !== 'ADMIN') {
           try {
             const contractor = await prisma.contractor.create({
               data: {
@@ -144,7 +166,8 @@ const nextAuth = NextAuth({
           where: { id: token.id as string },
           select: { id: true, contractorId: true, role: true },
         })
-        if (dbUser && !dbUser.contractorId) {
+        // Never bootstrap a contractor for ADMIN users.
+        if (dbUser && !dbUser.contractorId && dbUser.role !== 'ADMIN') {
           try {
             const contractor = await prisma.contractor.create({
               data: {
