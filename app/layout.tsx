@@ -3,6 +3,7 @@ import { Inter, Barlow_Condensed } from 'next/font/google'
 import Script from 'next/script'
 import './globals.css'
 import { Toaster } from '@/components/ui/toaster'
+import { Providers } from '@/components/Providers'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const barlow = Barlow_Condensed({
@@ -154,8 +155,10 @@ export default function RootLayout({
             gtag('config', 'G-FQDPZ117TS');
           `}
         </Script>
-        {children}
-        <Toaster />
+        <Providers>
+          {children}
+          <Toaster />
+        </Providers>
       </body>
     </html>
   )

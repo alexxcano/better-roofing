@@ -2,9 +2,13 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
+import { useSession } from 'next-auth/react'
 import { trackEvent } from '@/lib/analytics'
 
 export function Navbar() {
+  const { data: session } = useSession()
+  const isLoggedIn = !!session?.user
+
   return (
     <nav className="sticky top-0 z-50 w-full border-b-2 border-orange-500 bg-white/97 backdrop-blur shadow-sm">
       <div className="container flex h-14 items-center justify-between">
@@ -31,11 +35,17 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-3">
-          <Link href="/login" className="hidden md:block text-sm text-stone-500 hover:text-stone-800 font-semibold uppercase tracking-wide transition-colors px-3 py-2">
-            Log In
-          </Link>
-          <Link href="/signup" className="btn btn-primary px-5 py-2" onClick={() => trackEvent('cta_click', { location: 'navbar' })}>
-            Try Free →
+          {!isLoggedIn && (
+            <Link href="/login" className="hidden md:block text-sm text-stone-500 hover:text-stone-800 font-semibold uppercase tracking-wide transition-colors px-3 py-2">
+              Log In
+            </Link>
+          )}
+          <Link
+            href={isLoggedIn ? '/dashboard' : '/signup'}
+            className="btn btn-primary px-5 py-2"
+            onClick={() => trackEvent('cta_click', { location: 'navbar' })}
+          >
+            {isLoggedIn ? 'Dashboard →' : 'Try Free →'}
           </Link>
         </div>
       </div>
