@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { logger } from '@/lib/logger'
 
 const patchSchema = z.object({
   status: z.enum(['new', 'contacted', 'quoted', 'won', 'lost']).optional(),
@@ -32,10 +33,15 @@ export async function PATCH(
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  const updated = await prisma.lead.update({
-    where: { id },
-    data: parsed.data,
-  })
+  try {
+    const updated = await prisma.lead.update({
+      where: { id },
+      data: parsed.data,
+    })
 
-  return NextResponse.json(updated)
+    return NextResponse.json(updated)
+  } catch (error) {
+    await logger.error('api.leads.update', error, { userId: session.user.id, meta: { id } })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
 }

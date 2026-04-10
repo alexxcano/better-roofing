@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sendTrialReminder } from '@/lib/resend'
+import { logger } from '@/lib/logger'
 
 export const maxDuration = 60
 
@@ -64,35 +65,43 @@ export async function GET(req: NextRequest) {
   for (const sub of subs3d) {
     const toEmail = sub.contractor.notificationEmail ?? sub.contractor.users[0]?.email
     if (!toEmail || !sub.trialEndsAt) continue
-    await sendTrialReminder({
-      toEmail,
-      companyName: sub.contractor.companyName,
-      type: '3d',
-      trialEndsAt: sub.trialEndsAt,
-      leadCount: sub.contractor._count.leads,
-    })
-    await prisma.subscription.update({
-      where: { id: sub.id },
-      data: { trialReminder3dSentAt: now },
-    })
-    sent3d++
+    try {
+      await sendTrialReminder({
+        toEmail,
+        companyName: sub.contractor.companyName,
+        type: '3d',
+        trialEndsAt: sub.trialEndsAt,
+        leadCount: sub.contractor._count.leads,
+      })
+      await prisma.subscription.update({
+        where: { id: sub.id },
+        data: { trialReminder3dSentAt: now },
+      })
+      sent3d++
+    } catch (error) {
+      await logger.error('cron.trial_reminders', error, { meta: { subscriptionId: sub.id, type: '3d' } })
+    }
   }
 
   for (const sub of subsExpiry) {
     const toEmail = sub.contractor.notificationEmail ?? sub.contractor.users[0]?.email
     if (!toEmail || !sub.trialEndsAt) continue
-    await sendTrialReminder({
-      toEmail,
-      companyName: sub.contractor.companyName,
-      type: 'expiry',
-      trialEndsAt: sub.trialEndsAt,
-      leadCount: sub.contractor._count.leads,
-    })
-    await prisma.subscription.update({
-      where: { id: sub.id },
-      data: { trialReminderExpirySentAt: now },
-    })
-    sentExpiry++
+    try {
+      await sendTrialReminder({
+        toEmail,
+        companyName: sub.contractor.companyName,
+        type: 'expiry',
+        trialEndsAt: sub.trialEndsAt,
+        leadCount: sub.contractor._count.leads,
+      })
+      await prisma.subscription.update({
+        where: { id: sub.id },
+        data: { trialReminderExpirySentAt: now },
+      })
+      sentExpiry++
+    } catch (error) {
+      await logger.error('cron.trial_reminders', error, { meta: { subscriptionId: sub.id, type: 'expiry' } })
+    }
   }
 
   console.log(`[Trial Reminders] 3-day: ${sent3d} sent, expiry: ${sentExpiry} sent`)

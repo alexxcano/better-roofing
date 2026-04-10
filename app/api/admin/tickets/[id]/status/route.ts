@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { logger } from '@/lib/logger'
 
 const schema = z.object({
   status: z.enum(['open', 'in_progress', 'resolved']),
@@ -23,10 +24,15 @@ export async function POST(
     return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
   }
 
-  await prisma.supportTicket.update({
-    where: { id },
-    data: { status: parsed.data.status },
-  })
+  try {
+    await prisma.supportTicket.update({
+      where: { id },
+      data: { status: parsed.data.status },
+    })
 
-  return NextResponse.json({ ok: true })
+    return NextResponse.json({ ok: true })
+  } catch (error) {
+    await logger.error('admin.tickets.status', error, { meta: { id, status: parsed.data.status } })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
 }

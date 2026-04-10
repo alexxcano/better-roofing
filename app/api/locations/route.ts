@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { logger } from '@/lib/logger'
 
 const locationSchema = z.object({
   name: z.string().min(1),
@@ -51,9 +52,14 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const location = await prisma.location.create({
-    data: { contractorId, ...parsed.data },
-  })
+  try {
+    const location = await prisma.location.create({
+      data: { contractorId, ...parsed.data },
+    })
 
-  return NextResponse.json(location, { status: 201 })
+    return NextResponse.json(location, { status: 201 })
+  } catch (error) {
+    await logger.error('api.locations.create', error, { userId: session.user.id, meta: { contractorId } })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { generateWeeklyReport } from '@/lib/generateWeeklyReport'
 import { sendWeeklyReport } from '@/lib/resend'
+import { logger } from '@/lib/logger'
 
 export const maxDuration = 300 // 5 min — enough for batch processing
 
@@ -33,6 +34,13 @@ export async function GET(req: NextRequest) {
 
   const succeeded = results.filter((r) => r.status === 'fulfilled').length
   const failed = results.filter((r) => r.status === 'rejected').length
+
+  for (let i = 0; i < results.length; i++) {
+    const result = results[i]
+    if (result.status === 'rejected') {
+      await logger.error('cron.weekly_report', result.reason, { meta: { contractorId: contractors[i].id } })
+    }
+  }
 
   console.log(`[Weekly Report] Processed ${contractors.length} contractors — ${succeeded} ok, ${failed} failed`)
   return NextResponse.json({ processed: contractors.length, succeeded, failed })

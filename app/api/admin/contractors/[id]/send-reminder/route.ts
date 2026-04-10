@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { sendTrialReminder } from '@/lib/resend'
 import { z } from 'zod'
+import { logger } from '@/lib/logger'
 
 const schema = z.object({ type: z.enum(['3d', 'expiry']) })
 
@@ -46,21 +47,26 @@ export async function POST(
     return NextResponse.json({ error: 'No email on file for this contractor' }, { status: 400 })
   }
 
-  await sendTrialReminder({
-    toEmail,
-    companyName: sub.contractor.companyName,
-    type,
-    trialEndsAt: sub.trialEndsAt,
-    leadCount: sub.contractor._count.leads,
-  })
+  try {
+    await sendTrialReminder({
+      toEmail,
+      companyName: sub.contractor.companyName,
+      type,
+      trialEndsAt: sub.trialEndsAt,
+      leadCount: sub.contractor._count.leads,
+    })
 
-  const now = new Date()
-  await prisma.subscription.update({
-    where: { id: sub.id },
-    data: type === '3d'
-      ? { trialReminder3dSentAt: now }
-      : { trialReminderExpirySentAt: now },
-  })
+    const now = new Date()
+    await prisma.subscription.update({
+      where: { id: sub.id },
+      data: type === '3d'
+        ? { trialReminder3dSentAt: now }
+        : { trialReminderExpirySentAt: now },
+    })
 
-  return NextResponse.json({ ok: true })
+    return NextResponse.json({ ok: true })
+  } catch (error) {
+    await logger.error('admin.send_reminder', error, { meta: { contractorId, type } })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
 }

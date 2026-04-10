@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { logger } from '@/lib/logger'
 
 const patchSchema = z.object({
   status: z.enum(['open', 'resolved', 'ignored']),
@@ -25,15 +26,20 @@ export async function PATCH(
 
   const { status } = parsed.data
 
-  await prisma.errorLog.update({
-    where: { id },
-    data: {
-      status,
-      resolvedAt: status === 'resolved' ? new Date() : null,
-    },
-  })
+  try {
+    await prisma.errorLog.update({
+      where: { id },
+      data: {
+        status,
+        resolvedAt: status === 'resolved' ? new Date() : null,
+      },
+    })
 
-  return NextResponse.json({ ok: true })
+    return NextResponse.json({ ok: true })
+  } catch (error) {
+    await logger.error('admin.errors.update', error, { meta: { id, status } })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
 }
 
 export async function DELETE(
@@ -46,7 +52,11 @@ export async function DELETE(
   }
 
   const { id } = await params
-  await prisma.errorLog.delete({ where: { id } })
-
-  return NextResponse.json({ ok: true })
+  try {
+    await prisma.errorLog.delete({ where: { id } })
+    return NextResponse.json({ ok: true })
+  } catch (error) {
+    await logger.error('admin.errors.delete', error, { meta: { id } })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { logger } from '@/lib/logger'
 
 const updateSchema = z.object({
   name: z.string().min(1).optional(),
@@ -29,12 +30,17 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 })
   }
 
-  const location = await prisma.location.update({
-    where: { id },
-    data: parsed.data,
-  })
+  try {
+    const location = await prisma.location.update({
+      where: { id },
+      data: parsed.data,
+    })
 
-  return NextResponse.json(location)
+    return NextResponse.json(location)
+  } catch (error) {
+    await logger.error('api.locations.update', error, { userId: session.user.id, meta: { id } })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -49,6 +55,11 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  await prisma.location.delete({ where: { id } })
-  return NextResponse.json({ ok: true })
+  try {
+    await prisma.location.delete({ where: { id } })
+    return NextResponse.json({ ok: true })
+  } catch (error) {
+    await logger.error('api.locations.delete', error, { userId: session.user.id, meta: { id } })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
 }

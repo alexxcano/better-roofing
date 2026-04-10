@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { logger } from '@/lib/logger'
 
 const settingsSchema = z.object({
   notificationEmail: z.union([z.string().email(), z.literal('')]).optional(),
@@ -44,17 +45,22 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 })
   }
 
-  const contractor = await prisma.contractor.update({
-    where: { id: session.user.contractorId },
-    data: {
-      notificationEmail: parsed.data.notificationEmail ?? undefined,
-      webhookUrl: parsed.data.webhookUrl ?? undefined,
-      bookingUrl: parsed.data.bookingUrl ?? undefined,
-      outOfAreaBehavior: parsed.data.outOfAreaBehavior ?? undefined,
-      onboardingCompleted: parsed.data.onboardingCompleted ?? undefined,
-    },
-    select: { notificationEmail: true, webhookUrl: true, bookingUrl: true, outOfAreaBehavior: true, onboardingCompleted: true },
-  })
+  try {
+    const contractor = await prisma.contractor.update({
+      where: { id: session.user.contractorId },
+      data: {
+        notificationEmail: parsed.data.notificationEmail ?? undefined,
+        webhookUrl: parsed.data.webhookUrl ?? undefined,
+        bookingUrl: parsed.data.bookingUrl ?? undefined,
+        outOfAreaBehavior: parsed.data.outOfAreaBehavior ?? undefined,
+        onboardingCompleted: parsed.data.onboardingCompleted ?? undefined,
+      },
+      select: { notificationEmail: true, webhookUrl: true, bookingUrl: true, outOfAreaBehavior: true, onboardingCompleted: true },
+    })
 
-  return NextResponse.json(contractor)
+    return NextResponse.json(contractor)
+  } catch (error) {
+    await logger.error('api.contractor.settings', error, { userId: session.user.id, meta: { contractorId: session.user.contractorId } })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
 }

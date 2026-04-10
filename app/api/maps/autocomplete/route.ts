@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { logger } from '@/lib/logger'
 
 export async function GET(req: NextRequest) {
   // Allow widget calls (contractorId param) or authenticated dashboard calls
@@ -26,13 +27,18 @@ export async function GET(req: NextRequest) {
   url.searchParams.set('components', 'country:us')
   url.searchParams.set('key', key)
 
-  const res = await fetch(url.toString())
-  const data = await res.json()
+  try {
+    const res = await fetch(url.toString())
+    const data = await res.json()
 
-  return NextResponse.json({
-    predictions: (data.predictions ?? []).map((p: { place_id: string; description: string }) => ({
-      place_id: p.place_id,
-      description: p.description,
-    })),
-  })
+    return NextResponse.json({
+      predictions: (data.predictions ?? []).map((p: { place_id: string; description: string }) => ({
+        place_id: p.place_id,
+        description: p.description,
+      })),
+    })
+  } catch (error) {
+    await logger.warn('api.maps.autocomplete', error, { meta: { input } })
+    return NextResponse.json({ predictions: [] })
+  }
 }

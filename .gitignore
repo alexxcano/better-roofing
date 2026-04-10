@@ -32,6 +32,12 @@ Thumbs.db
 *.swp
 *.swo
 
+# Playwright — keep tests local, never commit to repo
+playwright.config.ts
+tests/
+test-results/
+playwright-report/
+
 # Vercel
 .vercel
 

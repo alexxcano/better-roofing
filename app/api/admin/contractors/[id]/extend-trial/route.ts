@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { logger } from '@/lib/logger'
 
 export async function POST(
   _req: NextRequest,
@@ -25,10 +26,15 @@ export async function POST(
   const base = sub.trialEndsAt && sub.trialEndsAt > new Date() ? sub.trialEndsAt : new Date()
   const newTrialEnd = new Date(base.getTime() + 7 * 24 * 60 * 60 * 1000)
 
-  await prisma.subscription.update({
-    where: { id: sub.id },
-    data: { trialEndsAt: newTrialEnd },
-  })
+  try {
+    await prisma.subscription.update({
+      where: { id: sub.id },
+      data: { trialEndsAt: newTrialEnd },
+    })
 
-  return NextResponse.json({ ok: true, newTrialEnd })
+    return NextResponse.json({ ok: true, newTrialEnd })
+  } catch (error) {
+    await logger.error('admin.extend_trial', error, { meta: { contractorId } })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
 }

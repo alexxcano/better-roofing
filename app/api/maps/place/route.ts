@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { logger } from '@/lib/logger'
 
 export async function GET(req: NextRequest) {
   // Allow widget calls (contractorId param) or authenticated dashboard calls
@@ -25,15 +26,20 @@ export async function GET(req: NextRequest) {
   url.searchParams.set('fields', 'formatted_address,geometry')
   url.searchParams.set('key', key)
 
-  const res = await fetch(url.toString())
-  const data = await res.json()
-  const result = data.result
+  try {
+    const res = await fetch(url.toString())
+    const data = await res.json()
+    const result = data.result
 
-  if (!result) return NextResponse.json({ error: 'Place not found' }, { status: 404 })
+    if (!result) return NextResponse.json({ error: 'Place not found' }, { status: 404 })
 
-  return NextResponse.json({
-    address: result.formatted_address ?? null,
-    lat: result.geometry?.location?.lat ?? null,
-    lng: result.geometry?.location?.lng ?? null,
-  })
+    return NextResponse.json({
+      address: result.formatted_address ?? null,
+      lat: result.geometry?.location?.lat ?? null,
+      lng: result.geometry?.location?.lng ?? null,
+    })
+  } catch (error) {
+    await logger.warn('api.maps.place', error, { meta: { placeId } })
+    return NextResponse.json({ error: 'Place lookup failed' }, { status: 500 })
+  }
 }

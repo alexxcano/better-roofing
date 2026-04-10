@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { logger } from '@/lib/logger'
 
 const updatePricingSchema = z.object({
   pricePerSquare: z.number().min(50).max(5000),
@@ -43,14 +44,19 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 })
   }
 
-  const settings = await prisma.pricingSettings.upsert({
-    where: { contractorId: session.user.contractorId },
-    update: parsed.data,
-    create: {
-      contractorId: session.user.contractorId,
-      ...parsed.data,
-    },
-  })
+  try {
+    const settings = await prisma.pricingSettings.upsert({
+      where: { contractorId: session.user.contractorId },
+      update: parsed.data,
+      create: {
+        contractorId: session.user.contractorId,
+        ...parsed.data,
+      },
+    })
 
-  return NextResponse.json(settings)
+    return NextResponse.json(settings)
+  } catch (error) {
+    await logger.error('api.pricing.update', error, { userId: session.user.id, meta: { contractorId: session.user.contractorId } })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
 }
