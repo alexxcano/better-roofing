@@ -174,6 +174,55 @@ export async function sendLeadNotification({
   }
 }
 
+export async function sendPasswordResetEmail({
+  toEmail,
+  resetUrl,
+}: {
+  toEmail: string
+  resetUrl: string
+}): Promise<void> {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL
+  await resend.emails.send({
+    from: 'BetterRoofing <notifications@betterroofing.co>',
+    to: toEmail,
+    subject: 'Reset your BetterRoofing password',
+    text: [
+      'RESET YOUR PASSWORD',
+      '',
+      'We received a request to reset your password. Click the link below — it expires in 1 hour.',
+      '',
+      resetUrl,
+      '',
+      "If you didn't request this, you can safely ignore this email.",
+      '',
+      `BetterRoofing — ${appUrl}`,
+    ].join('\n'),
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1c1917;">
+        <div style="background: #1c1917; padding: 20px 24px; border-bottom: 4px solid #f97316;">
+          <p style="color: #a8a29e; margin: 0 0 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;">BetterRoofing</p>
+          <p style="color: white; margin: 0; font-size: 18px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.03em;">Reset Your Password</p>
+        </div>
+        <div style="background: white; border: 2px solid #e7e5e4; border-top: none; padding: 28px;">
+          <p style="margin: 0 0 20px; font-size: 15px; line-height: 1.6; color: #44403c;">
+            We received a request to reset your password. Click the button below — the link expires in <strong>1 hour</strong>.
+          </p>
+          <a href="${resetUrl}"
+             style="background: #f97316; color: white; padding: 12px 24px; text-decoration: none; font-weight: 700; font-size: 14px; display: inline-block; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 24px;">
+            Reset Password →
+          </a>
+          <p style="margin: 0; font-size: 13px; color: #78716c; line-height: 1.5; border-top: 1px solid #f5f5f4; padding-top: 20px;">
+            If you didn't request a password reset, you can safely ignore this email. Your password won't change.
+          </p>
+        </div>
+        <p style="text-align: center; color: #a8a29e; font-size: 11px; margin-top: 16px;">
+          BetterRoofing · <a href="${appUrl}" style="color: #a8a29e;">${appUrl}</a>
+        </p>
+      </div>
+    `,
+  })
+}
+
 export async function sendWeeklyReport({
   toEmail,
   companyName,

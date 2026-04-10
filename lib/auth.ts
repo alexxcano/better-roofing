@@ -42,7 +42,9 @@ const nextAuth = NextAuth({
         try {
           const user = await prisma.user.findUnique({ where: { email } })
 
-          if (!user || !user.password) return null
+          if (!user) return null
+          // Account exists but has no password — signed up with Google
+          if (!user.password) throw new Error('GOOGLE_ONLY')
 
           // Check lockout
           if (user.loginLockedUntil && user.loginLockedUntil > new Date()) {
@@ -82,8 +84,11 @@ const nextAuth = NextAuth({
             contractorId: user.contractorId,
           }
         } catch (err) {
-          // Re-throw user-facing errors (lockout messages) as-is
-          if (err instanceof Error && err.message.startsWith('Too many failed attempts')) throw err
+          // Re-throw user-facing errors as-is so the login page can display them
+          if (err instanceof Error && (
+            err.message.startsWith('Too many failed attempts') ||
+            err.message === 'GOOGLE_ONLY'
+          )) throw err
           await logger.error('auth.credentials', err, { meta: { email } })
           return null
         }

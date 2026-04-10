@@ -4,7 +4,6 @@ import { Suspense, useEffect, useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { useToast } from '@/components/ui/use-toast'
 
 const inputClass =
   'w-full border-2 border-stone-300 bg-white text-stone-900 text-sm font-medium px-3 py-2.5 focus:outline-none focus:border-orange-500 placeholder:text-stone-400'
@@ -12,10 +11,10 @@ const inputClass =
 const STORAGE_KEY = 'br_last_provider'
 type Provider = 'google' | 'password' | null
 
-function getAuthErrorMessage(error: string | null) {
+function getOAuthErrorMessage(error: string | null) {
   switch (error) {
     case 'OAuthAccountNotLinked':
-      return 'That email already exists with a different sign-in method. Google account linking is now enabled, so try Google again or use your password once to confirm the account.'
+      return 'That email already exists with a different sign-in method. Try Google or use your password.'
     case 'AccessDenied':
       return 'Google sign-in was denied for this account.'
     case 'Configuration':
@@ -25,18 +24,33 @@ function getAuthErrorMessage(error: string | null) {
   }
 }
 
+function Banner({ variant, children }: { variant: 'error' | 'warn' | 'success'; children: React.ReactNode }) {
+  const styles = {
+    error:   'border-red-200 bg-red-50 text-red-700',
+    warn:    'border-orange-200 bg-orange-50 text-orange-700',
+    success: 'border-green-200 bg-green-50 text-green-700',
+  }
+  return (
+    <div className={`border px-3 py-2 text-xs font-semibold ${styles[variant]}`}>
+      {children}
+    </div>
+  )
+}
+
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
-  const authError = searchParams.get('error')
-  const { toast } = useToast()
+  const oauthError = searchParams.get('error')
+  const reason = searchParams.get('reason')
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [credError, setCredError] = useState<string | null>(null)
   const [lastProvider, setLastProvider] = useState<Provider>(null)
-  const authErrorMessage = getAuthErrorMessage(authError)
+
+  const oauthErrorMessage = getOAuthErrorMessage(oauthError)
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY) as Provider
@@ -46,6 +60,7 @@ function LoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setCredError(null)
 
     const result = await signIn('credentials', {
       email,
@@ -54,7 +69,14 @@ function LoginForm() {
     })
 
     if (result?.error) {
-      toast({ title: 'Login failed', description: 'Invalid email or password', variant: 'destructive' })
+      const msg = result.error
+      if (msg === 'GOOGLE_ONLY') {
+        setCredError('This account was created with Google. Use "Continue with Google" above to sign in.')
+      } else if (msg.startsWith('Too many failed attempts')) {
+        setCredError(msg)
+      } else {
+        setCredError('Invalid email or password.')
+      }
       setLoading(false)
     } else {
       localStorage.setItem(STORAGE_KEY, 'password')
@@ -64,13 +86,7 @@ function LoginForm() {
 
   const handleGoogle = () => {
     localStorage.setItem(STORAGE_KEY, 'google')
-    signIn(
-      'google',
-      { callbackUrl },
-      {
-        prompt: 'select_account',
-      }
-    )
+    signIn('google', { callbackUrl }, { prompt: 'select_account' })
   }
 
   return (
@@ -82,10 +98,18 @@ function LoginForm() {
       </div>
 
       <div className="px-7 py-6 space-y-5">
-        {authErrorMessage && (
-          <div className="border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">
-            {authErrorMessage}
-          </div>
+        {/* Banners */}
+        {reason === 'expired' && (
+          <Banner variant="warn">Your session expired. Please sign in again.</Banner>
+        )}
+        {reason === 'password_reset' && (
+          <Banner variant="success">Password updated. You can now sign in with your new password.</Banner>
+        )}
+        {oauthErrorMessage && (
+          <Banner variant="error">{oauthErrorMessage}</Banner>
+        )}
+        {credError && (
+          <Banner variant="error">{credError}</Banner>
         )}
 
         {/* Google */}
@@ -112,7 +136,7 @@ function LoginForm() {
           )}
         </button>
 
-        {lastProvider === 'google' && (
+        {lastProvider === 'google' && !credError && (
           <p className="text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-200 px-3 py-2">
             You signed in with Google last time. Use the button above to continue.
           </p>
@@ -125,7 +149,7 @@ function LoginForm() {
           <div className="flex-1 h-px bg-stone-200" />
         </div>
 
-        {/* Email form */}
+        {/* Credentials form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
             <label className="block text-xs font-black uppercase tracking-widest text-stone-600">Email</label>
@@ -139,7 +163,15 @@ function LoginForm() {
             />
           </div>
           <div className="space-y-1.5">
-            <label className="block text-xs font-black uppercase tracking-widest text-stone-600">Password</label>
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-black uppercase tracking-widest text-stone-600">Password</label>
+              <Link
+                href="/forgot-password"
+                className="text-[10px] font-bold text-stone-400 hover:text-orange-600 uppercase tracking-widest transition-colors"
+              >
+                Forgot password?
+              </Link>
+            </div>
             <input
               type="password"
               placeholder="••••••••"
@@ -154,7 +186,7 @@ function LoginForm() {
             disabled={loading}
             className={`btn btn-primary w-full py-3 ${lastProvider === 'google' ? 'opacity-40' : ''}`}
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? 'Signing in…' : 'Sign In'}
           </button>
         </form>
       </div>

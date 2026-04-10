@@ -19,3 +19,10 @@ export const estimateRatelimit = new Ratelimit({
   limiter: Ratelimit.slidingWindow(30, '1 m'),
   prefix: 'rl:estimate',
 })
+
+// 5 password reset requests per IP per hour
+export const passwordResetRatelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(5, '1 h'),
+  prefix: 'rl:password_reset',
+})
