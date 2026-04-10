@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { useToast } from '@/components/ui/use-toast'
-import { Copy, Check, Mail, ChevronDown, ChevronUp } from 'lucide-react'
+import { Copy, Check, Mail, ChevronDown, ChevronUp, Link as LinkIcon } from 'lucide-react'
 
 interface InstallClientProps {
   contractorId: string
@@ -13,12 +13,14 @@ export function InstallClient({ contractorId, isPro }: InstallClientProps) {
   const { toast } = useToast()
   const [embedCopied, setEmbedCopied] = useState(false)
   const [tabCopied, setTabCopied] = useState(false)
+  const [linkCopied, setLinkCopied] = useState(false)
   const [showEmbedCode, setShowEmbedCode] = useState(false)
   const [showTabCode, setShowTabCode] = useState(false)
   const embedCodeRef = useRef<HTMLDivElement>(null)
   const tabCodeRef = useRef<HTMLDivElement>(null)
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://yourdomain.com'
+  const directLink = `${appUrl}/embed/${contractorId}`
 
   const scriptTag = `<!-- BetterRoofing Widget -->
 <div id="roof-estimator"></div>
@@ -38,6 +40,13 @@ export function InstallClient({ contractorId, isPro }: InstallClientProps) {
     setTabCopied(true)
     toast({ title: 'Copied!' })
     setTimeout(() => setTabCopied(false), 2000)
+  }
+
+  const copyLink = async () => {
+    await navigator.clipboard.writeText(directLink)
+    setLinkCopied(true)
+    toast({ title: 'Link copied!' })
+    setTimeout(() => setLinkCopied(false), 2000)
   }
 
   const emailEmbed = () => {
@@ -167,6 +176,29 @@ export function InstallClient({ contractorId, isPro }: InstallClientProps) {
                 </a>
               </div>
             )}
+          </div>
+
+          {/* Direct / email signature link */}
+          <div className="border-2 border-stone-300 bg-white flex flex-col flex-shrink-0">
+            <div className="px-5 py-4 border-b-2 border-stone-200 bg-stone-50">
+              <p className="font-barlow font-black text-base uppercase text-stone-900 leading-none">Email Signature Link</p>
+              <p className="text-xs text-stone-500 font-semibold mt-1 leading-relaxed">
+                Share this link in emails or texts — anyone who clicks it lands directly on your quote form, no website needed.
+              </p>
+            </div>
+            <div className="p-4 flex flex-col gap-2.5">
+              <div className="flex items-center gap-2 border-2 border-stone-200 bg-stone-50 px-3 py-2">
+                <LinkIcon className="h-3.5 w-3.5 text-stone-400 flex-shrink-0" />
+                <span className="text-xs font-mono text-stone-600 truncate flex-1">{directLink}</span>
+              </div>
+              <button onClick={copyLink} className="btn btn-primary w-full py-2.5">
+                {linkCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                {linkCopied ? 'Copied!' : 'Copy Link'}
+              </button>
+              <p className="text-[11px] text-stone-400 font-semibold uppercase tracking-wide leading-relaxed">
+                Tip: add it as a hyperlink on "Get a free quote" in your email signature
+              </p>
+            </div>
           </div>
 
         </div>

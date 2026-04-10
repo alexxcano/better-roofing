@@ -11,15 +11,17 @@ export const metadata: Metadata = {
 }
 
 const NAV = [
-  { href: '#quick-start',     label: 'Quick Start' },
-  { href: '#install-widget',  label: 'Install Widget' },
-  { href: '#floating-tab',    label: 'Floating Tab Widget' },
-  { href: '#pricing-setup',   label: 'Pricing & Materials' },
-  { href: '#ai-features',     label: 'AI Features' },
-  { href: '#lead-pipeline',   label: 'Lead Pipeline' },
-  { href: '#notifications',   label: 'Lead Notifications' },
-  { href: '#webhook-zapier',  label: 'Webhook & Zapier' },
-  { href: '#lead-scoring',    label: 'Lead Scoring' },
+  { href: '#quick-start',       label: 'Quick Start' },
+  { href: '#install-widget',    label: 'Install Widget' },
+  { href: '#floating-tab',      label: 'Floating Tab Widget' },
+  { href: '#email-signature',   label: 'Email Signature Link' },
+  { href: '#pricing-setup',     label: 'Pricing & Materials' },
+  { href: '#service-locations', label: 'Service Locations' },
+  { href: '#ai-features',       label: 'AI Features' },
+  { href: '#lead-pipeline',     label: 'Lead Pipeline' },
+  { href: '#notifications',     label: 'Lead Notifications' },
+  { href: '#webhook-zapier',    label: 'Webhook & Zapier' },
+  { href: '#lead-scoring',      label: 'Lead Scoring' },
 ]
 
 function SectionHeader({ id, eyebrow, title }: { id: string; eyebrow: string; title: string }) {
@@ -34,7 +36,7 @@ function SectionHeader({ id, eyebrow, title }: { id: string; eyebrow: string; ti
   )
 }
 
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
+function Card({ title, children }: { title: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="border-2 border-stone-300 bg-white mb-6">
       <div className="px-5 py-3 bg-stone-100 border-b-2 border-stone-300">
@@ -65,13 +67,6 @@ function Step({ n, title, children }: { n: string; title: string; children: Reac
   )
 }
 
-function ProBadge() {
-  return (
-    <span className="inline-block text-[9px] font-black uppercase tracking-widest text-orange-600 border border-orange-300 bg-orange-100 px-1.5 py-0.5 leading-none align-middle ml-1">
-      Pro
-    </span>
-  )
-}
 
 export default function DocsPage() {
   return (
@@ -123,7 +118,7 @@ export default function DocsPage() {
               <Card title="You'll be live in under 5 minutes">
                 <Step n="01" title="Create your account">
                   <Link href="/signup" className="text-orange-600 hover:underline font-semibold">Sign up at betterroofing.co/signup</Link>
-                  {' '}with email or Google. A card is required to start your 14-day trial — you won't be charged until day 15.
+                  {' '}with email or Google. No credit card required — your 14-day free trial starts immediately.
                 </Step>
                 <Step n="02" title="Set your pricing">
                   Go to <strong>Dashboard → Settings</strong>. Enter your price per square for each material type you offer, set your waste factor, and tear-off cost. Toggle off any materials you don't install.
@@ -217,7 +212,7 @@ export default function DocsPage() {
 
             {/* ── Floating Tab Widget ── */}
             <section>
-              <SectionHeader id="floating-tab" eyebrow="Pro Feature" title="Floating Tab Widget" />
+              <SectionHeader id="floating-tab" eyebrow="Setup" title="Floating Tab Widget" />
 
               <Card title="What It Does">
                 <p className="text-sm text-stone-500 mb-4">
@@ -338,6 +333,43 @@ export default function DocsPage() {
               </Card>
             </section>
 
+            {/* ── Email Signature Link ── */}
+            <section>
+              <SectionHeader id="email-signature" eyebrow="Share Anywhere" title="Email Signature Link" />
+              <Card title="What It Is">
+                <p className="text-sm text-stone-500 mb-4">
+                  Every BetterRoofing account includes a permanent direct link to your quote widget — no website required.
+                  Anyone who clicks it lands straight on your estimator.
+                </p>
+                <div className="bg-stone-100 border-2 border-stone-200 px-4 py-3 font-mono text-sm text-stone-700 mb-4 overflow-x-auto">
+                  https://app.betterroofing.co/embed/<span className="text-orange-600">YOUR_ID</span>
+                </div>
+                <p className="text-sm text-stone-500">
+                  Find your personal link under <strong>Dashboard → Install Widget → Email Signature Link</strong>. Copy it with one click.
+                </p>
+              </Card>
+              <Card title="How to Use It">
+                <div className="space-y-4 text-sm text-stone-500">
+                  <div className="border-l-2 border-orange-300 pl-3">
+                    <p className="font-black text-xs uppercase tracking-wide text-stone-600 mb-1">Email Signature</p>
+                    <p>Add it as a hyperlink on text like <strong>"Get a free instant estimate"</strong> in your email signature. Every prospect you email can get a quote in 60 seconds without a phone call.</p>
+                  </div>
+                  <div className="border-l-2 border-orange-300 pl-3">
+                    <p className="font-black text-xs uppercase tracking-wide text-stone-600 mb-1">Text Message</p>
+                    <p>Paste it in a text to a homeowner you're already talking to. They click, get a quote, and submit — you get a scored lead in your dashboard instantly.</p>
+                  </div>
+                  <div className="border-l-2 border-orange-300 pl-3">
+                    <p className="font-black text-xs uppercase tracking-wide text-stone-600 mb-1">Social Media / Google Business</p>
+                    <p>Drop it in your Instagram bio, Facebook page, or Google Business profile description. Works anywhere a URL can go.</p>
+                  </div>
+                  <div className="border-l-2 border-orange-300 pl-3">
+                    <p className="font-black text-xs uppercase tracking-wide text-stone-600 mb-1">QR Code</p>
+                    <p>Paste the link into any free QR code generator. Print it on door hangers, yard signs, or truck magnets so homeowners can scan and quote on the spot.</p>
+                  </div>
+                </div>
+              </Card>
+            </section>
+
             {/* ── Pricing & Materials ── */}
             <section>
               <SectionHeader id="pricing-setup" eyebrow="Configuration" title="Pricing & Materials" />
@@ -378,13 +410,88 @@ export default function DocsPage() {
                   </div>
                 </div>
               </Card>
+
+              <Card title="Booking / Scheduling URL">
+                <p className="text-sm text-stone-500 mb-4">
+                  Set a scheduling link under <strong>Dashboard → Settings → Booking / Scheduling URL</strong>. Once saved, a <strong>"Book a Free Inspection"</strong> button
+                  appears on the widget's result screen — right after the homeowner sees their estimate. One click opens your calendar.
+                </p>
+                <div className="bg-stone-50 border border-stone-200 px-4 py-3 text-sm text-stone-600 space-y-1 mb-4">
+                  <p><strong>Works with:</strong> Calendly, Acuity Scheduling, Cal.com, HouseCall Pro, ServiceTitan, or any URL that opens a booking page.</p>
+                </div>
+                <p className="text-xs text-stone-400 font-semibold uppercase tracking-wide">
+                  Leave it blank and the button won't appear. No configuration required if you prefer phone-only booking.
+                </p>
+              </Card>
+            </section>
+
+            {/* ── Service Locations ── */}
+            <section>
+              <SectionHeader id="service-locations" eyebrow="Configuration" title="Service Locations" />
+              <Card title="What Service Locations Do">
+                <p className="text-sm text-stone-500 mb-4">
+                  Service Locations let you define exactly where you work. When a homeowner enters their address in your widget,
+                  BetterRoofing calculates the distance to your nearest location. If they're outside your service radius,
+                  you control what happens next.
+                </p>
+                <div className="bg-stone-50 border border-stone-200 px-4 py-3 text-sm text-stone-600 mb-4">
+                  <strong>Without any locations configured:</strong> all leads are accepted regardless of where the homeowner is located.
+                  Add at least one location to enable filtering.
+                </div>
+                <p className="text-sm text-stone-500">
+                  Go to <strong>Dashboard → Service Locations</strong> to manage your locations.
+                  Go to <strong>Dashboard → Service Locations</strong> to manage your locations.
+                </p>
+              </Card>
+
+              <Card title="Adding a Location">
+                <p className="text-sm text-stone-500 mb-4">
+                  Each location has three fields:
+                </p>
+                <div className="space-y-3 text-sm text-stone-500 mb-4">
+                  <div className="border-l-2 border-orange-300 pl-3">
+                    <p className="font-black text-xs uppercase tracking-wide text-stone-500 mb-0.5">Location Name</p>
+                    <p>A label for your own reference — e.g. <strong>"Austin HQ"</strong> or <strong>"Dallas Office"</strong>. Not shown to homeowners.</p>
+                  </div>
+                  <div className="border-l-2 border-orange-300 pl-3">
+                    <p className="font-black text-xs uppercase tracking-wide text-stone-500 mb-0.5">Address</p>
+                    <p>Your office or shop address. Type and select from the autocomplete dropdown — this pins the exact coordinates used for distance calculations.</p>
+                  </div>
+                  <div className="border-l-2 border-orange-300 pl-3">
+                    <p className="font-black text-xs uppercase tracking-wide text-stone-500 mb-0.5">Service Radius (miles)</p>
+                    <p>How far out you'll travel from that address. Default is 50 miles. Set it to match your actual coverage area.</p>
+                  </div>
+                </div>
+                <p className="text-xs text-stone-400 font-semibold uppercase tracking-wide">
+                  Leads are checked against your nearest location — so overlapping radii work fine if you have multiple offices.
+                </p>
+              </Card>
+
+              <Card title="Out-of-Area Behavior">
+                <p className="text-sm text-stone-500 mb-4">
+                  Choose what happens when a homeowner is outside all your service radii:
+                </p>
+                <div className="border border-stone-200 divide-y divide-stone-200 mb-4">
+                  <div className="px-4 py-4">
+                    <p className="text-sm font-black text-stone-800 mb-1">🚧 Hard Gate</p>
+                    <p className="text-sm text-stone-500">The widget shows a <strong>"we don't service your area"</strong> screen. The homeowner cannot submit a lead. Keeps your pipeline clean — recommended if you have a firm service boundary.</p>
+                  </div>
+                  <div className="px-4 py-4">
+                    <p className="text-sm font-black text-stone-800 mb-1">🚩 Soft Flag</p>
+                    <p className="text-sm text-stone-500">The lead goes through normally, but it's marked as <strong>out-of-area</strong> in your dashboard and capped at a lead score of 4/10. Useful if you want to track expansion demand or occasionally take jobs outside your normal area.</p>
+                  </div>
+                </div>
+                <p className="text-xs text-stone-400 font-semibold uppercase tracking-wide">
+                  You can switch between behaviors anytime — the change takes effect immediately.
+                </p>
+              </Card>
             </section>
 
             {/* ── AI Features ── */}
             <section>
-              <SectionHeader id="ai-features" eyebrow="Pro Feature" title="AI Features" />
+              <SectionHeader id="ai-features" eyebrow="Features" title="AI Features" />
 
-              <Card title={`AI Lead Intelligence Brief  ·  Pro`}>
+              <Card title="AI Lead Intelligence Brief">
                 <p className="text-sm text-stone-500 mb-4">
                   Every lead that comes in triggers an AI analysis. Within seconds of submission, BetterRoofing generates a
                   3-bullet intelligence card visible when you expand a lead in your dashboard.
@@ -411,7 +518,7 @@ export default function DocsPage() {
                 </p>
               </Card>
 
-              <Card title={`AI Follow-up Drafts (Email & SMS)  ·  Pro`}>
+              <Card title="AI Follow-up Drafts (Email & SMS)">
                 <p className="text-sm text-stone-500 mb-4">
                   At the same time as the intelligence brief, BetterRoofing writes a personalized follow-up email
                   and SMS for each lead — using their name, address, estimate range, material type, and insurance situation.
@@ -440,7 +547,7 @@ export default function DocsPage() {
                 </p>
               </Card>
 
-              <Card title={`Weekly AI Intelligence Report  ·  Pro`}>
+              <Card title="Weekly AI Intelligence Report">
                 <p className="text-sm text-stone-500 mb-4">
                   Every Monday morning, BetterRoofing generates a plain-English report summarizing your pipeline from the previous week.
                   It appears at the top of your dashboard and covers:
@@ -493,6 +600,15 @@ export default function DocsPage() {
                 </div>
                 <p className="text-sm text-stone-500">
                   Status updates are instant and saved automatically. Click any lead row to open the lead drawer — a full-screen side panel with the satellite image, AI brief, contact details, insurance status, and outreach drafts, with the status picker right there too.
+                </p>
+              </Card>
+
+              <Card title="Exporting Leads (CSV)">
+                <p className="text-sm text-stone-500 mb-4">
+                  Every lead in your dashboard can be exported to a CSV file. Click the <strong>Export CSV</strong> button in the top-right of your leads table to download all your leads with full detail — name, address, estimate range, material, insurance status, lead score, status, and timestamp.
+                </p>
+                <p className="text-sm text-stone-500">
+                  The export includes all leads, not just the ones visible on the current page. Useful for importing into a CRM, building a mailing list, or keeping your own records.
                 </p>
               </Card>
             </section>
@@ -638,7 +754,7 @@ export default function DocsPage() {
                   ))}
                 </div>
                 <p className="text-xs text-stone-400 font-semibold mt-4">
-                  The AI Lead Intelligence Brief <ProBadge /> uses the score and job context to recommend a specific action — so you always know what to do next.
+                  The AI Lead Intelligence Brief uses the score and job context to recommend a specific action — so you always know what to do next.
                 </p>
               </Card>
             </section>
