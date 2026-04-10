@@ -23,6 +23,9 @@ const nextAuth = NextAuth({
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      // The product offers password and Google sign-in on the same account screens,
+      // so allow verified Google emails to attach to an existing same-email user.
+      allowDangerousEmailAccountLinking: true,
     }),
     CredentialsProvider({
       name: 'credentials',

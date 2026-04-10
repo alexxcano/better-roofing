@@ -12,16 +12,31 @@ const inputClass =
 const STORAGE_KEY = 'br_last_provider'
 type Provider = 'google' | 'password' | null
 
+function getAuthErrorMessage(error: string | null) {
+  switch (error) {
+    case 'OAuthAccountNotLinked':
+      return 'That email already exists with a different sign-in method. Google account linking is now enabled, so try Google again or use your password once to confirm the account.'
+    case 'AccessDenied':
+      return 'Google sign-in was denied for this account.'
+    case 'Configuration':
+      return 'Google sign-in is misconfigured. Check the OAuth client and callback URL settings.'
+    default:
+      return error ? 'Google sign-in could not be completed. Please try again.' : null
+  }
+}
+
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
+  const authError = searchParams.get('error')
   const { toast } = useToast()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [lastProvider, setLastProvider] = useState<Provider>(null)
+  const authErrorMessage = getAuthErrorMessage(authError)
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY) as Provider
@@ -61,6 +76,12 @@ function LoginForm() {
       </div>
 
       <div className="px-7 py-6 space-y-5">
+        {authErrorMessage && (
+          <div className="border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">
+            {authErrorMessage}
+          </div>
+        )}
+
         {/* Google */}
         <button
           type="button"
