@@ -64,7 +64,13 @@ function LoginForm() {
 
   const handleGoogle = () => {
     localStorage.setItem(STORAGE_KEY, 'google')
-    signIn('google', { callbackUrl })
+    signIn(
+      'google',
+      { callbackUrl },
+      {
+        prompt: 'select_account',
+      }
+    )
   }
 
   return (

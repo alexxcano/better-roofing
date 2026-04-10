@@ -22,6 +22,8 @@ import {
 } from 'lucide-react'
 import { SupportDialog } from './SupportDialog'
 
+const STORAGE_KEY = 'br_last_provider'
+
 const navItems: { href: string; label: string; icon: React.ElementType; external?: boolean }[] = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
   { href: '/dashboard/leads', label: 'Leads', icon: Users },
@@ -107,7 +109,10 @@ export function DashboardNav({ companyName, userEmail, plan }: { companyName: st
         Support
       </button>
       <button
-        onClick={() => signOut({ callbackUrl: '/' })}
+        onClick={() => {
+          localStorage.removeItem(STORAGE_KEY)
+          signOut({ callbackUrl: '/' })
+        }}
         className="flex items-center gap-3 px-3 py-2.5 w-full text-sm font-semibold uppercase tracking-wide text-stone-500 hover:text-white hover:bg-stone-800 transition-colors"
       >
         <LogOut className="h-4 w-4" />
