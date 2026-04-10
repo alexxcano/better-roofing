@@ -13,6 +13,68 @@ const loginSchema = z.object({
   password: z.string().min(1),
 })
 
+async function ensureContractorAccess(params: {
+  userId: string
+  name?: string | null
+  email?: string | null
+}) {
+  const dbUser = await prisma.user.findUnique({
+    where: { id: params.userId },
+    select: { id: true, contractorId: true, role: true },
+  })
+
+  if (!dbUser) return null
+  if (dbUser.contractorId || dbUser.role === 'ADMIN') {
+    return {
+      contractorId: dbUser.contractorId,
+      role: dbUser.role,
+      created: false,
+    }
+  }
+
+  try {
+    const updatedUser = await prisma.user.update({
+      where: { id: dbUser.id },
+      data: {
+        contractor: {
+          create: {
+            companyName: params.name ?? 'My Roofing Company',
+            pricingSettings: { create: {} },
+            subscription: {
+              create: {
+                plan: 'PRO',
+                status: 'trialing',
+                trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+              },
+            },
+          },
+        },
+      },
+      select: { contractorId: true, role: true },
+    })
+
+    return {
+      contractorId: updatedUser.contractorId,
+      role: updatedUser.role,
+      created: true,
+    }
+  } catch (err) {
+    // If another request won the race to attach a contractor, reuse it.
+    const recoveredUser = await prisma.user.findUnique({
+      where: { id: dbUser.id },
+      select: { contractorId: true, role: true },
+    })
+    if (recoveredUser?.contractorId) {
+      return {
+        contractorId: recoveredUser.contractorId,
+        role: recoveredUser.role,
+        created: false,
+      }
+    }
+    throw err
+  }
+}
+
 const nextAuth = NextAuth({
   adapter: PrismaAdapter(prisma),
   session: { strategy: 'jwt' },
@@ -99,47 +161,29 @@ const nextAuth = NextAuth({
         token.role = (user as any).role
         token.contractorId = (user as any).contractorId
       }
-      // On first sign-in: PrismaAdapter has committed the user row by the time jwt
-      // fires, so token.id is always the real DB CUID here. Credentials users already
-      // have contractorId set above via authorize; only Google sign-ins need bootstrap.
-      if (trigger === 'signIn' && token.id && !token.contractorId) {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: token.id as string },
-          select: { id: true, contractorId: true, role: true },
-        })
-        if (dbUser?.contractorId) {
-          // Returning Google user — sync to token.
-          token.contractorId = dbUser.contractorId
-          token.role = dbUser.role
-        } else if (dbUser && dbUser.role !== 'ADMIN') {
-          // First Google sign-in — bootstrap contractor + subscription atomically.
-          try {
-            const contractor = await prisma.contractor.create({
-              data: {
-                companyName: token.name ?? 'My Roofing Company',
-                pricingSettings: { create: {} },
-              },
-            })
-            await prisma.$transaction([
-              prisma.user.update({ where: { id: dbUser.id }, data: { contractorId: contractor.id } }),
-              prisma.subscription.create({
-                data: {
-                  contractorId: contractor.id,
-                  plan: 'PRO',
-                  status: 'trialing',
-                  trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-                },
-              }),
-            ])
-            token.contractorId = contractor.id
-            token.role = dbUser.role
-            await sendTelegramMessage(signupAlert(token.name ?? 'Unknown', token.email ?? '', 'Google'))
-          } catch (err) {
-            await logger.error('auth.bootstrap', err, {
-              userId: dbUser.id,
-              meta: { email: token.email, name: token.name },
-            })
+      // Self-heal any non-admin account that exists without a contractor. This covers
+      // first-time Google sign-ups (`trigger === "signUp"`) and older orphaned users.
+      if (token.id && !token.contractorId) {
+        try {
+          const access = await ensureContractorAccess({
+            userId: token.id as string,
+            name: token.name,
+            email: token.email,
+          })
+
+          if (access) {
+            token.contractorId = access.contractorId
+            token.role = access.role
+
+            if (access.created) {
+              await sendTelegramMessage(signupAlert(token.name ?? 'Unknown', token.email ?? '', 'Google'))
+            }
           }
+        } catch (err) {
+          await logger.error('auth.bootstrap', err, {
+            userId: token.id as string,
+            meta: { email: token.email, name: token.name, trigger },
+          })
         }
       }
       return token
