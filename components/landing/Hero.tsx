@@ -18,9 +18,13 @@ export function Hero() {
               Knew About
             </h1>
 
-            <p className="text-stone-600 text-xl leading-relaxed mb-10 max-w-md">
-              Add a quote widget to your site. Homeowners get an instant estimate 24/7 — even when you&apos;re off the clock. You get a scored lead with AI follow-up already written.
+            <p className="text-stone-600 text-xl leading-relaxed mb-6 max-w-md">
+              Add a quote widget to your site. Homeowners get an instant estimate 24/7 — nights, weekends, the hours you&apos;re never answering. You get a scored lead with AI follow-up already written.
             </p>
+
+            <div className="flex items-center gap-2 border-l-4 border-orange-500 bg-orange-50 pl-3 pr-4 py-2 mb-8 max-w-fit">
+              <p className="text-sm font-bold text-orange-800">A contact form gets you a name. An instant estimate gets you a buyer.</p>
+            </div>
 
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
               <Link href="/signup" className="btn btn-primary px-8 py-4 text-base" onClick={() => trackEvent('cta_click', { location: 'hero' })}>
@@ -32,6 +36,9 @@ export function Hero() {
             <div className="flex flex-col gap-2">
               <p className="text-sm text-stone-400 uppercase tracking-wider font-semibold">
                 14-day free trial · No credit card required · Cancel anytime
+              </p>
+              <p className="text-sm font-bold text-orange-700">
+                💡 One average job covers your subscription for 10+ years.
               </p>
               <p className="text-sm text-stone-500 font-semibold">
                 ⭐⭐⭐⭐⭐ &ldquo;Got 3 leads the first week&rdquo; — Mike T., Denver CO

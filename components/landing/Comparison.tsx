@@ -2,23 +2,15 @@ import { Check, X } from 'lucide-react'
 import Link from 'next/link'
 
 const rows = [
-  { feature: 'Monthly price',                             us: '$49 / mo',  roofle: '$350 / mo',  demandiq: '$300 / mo', highlight: true },
-  { feature: 'Setup fee',                                 us: '$0',        roofle: '$2,000',      demandiq: '$1,500',    highlight: true },
-  { feature: 'Instant quote widget',                      us: true,        roofle: true,          demandiq: true },
-  { feature: 'Lead scoring & qualification',              us: true,        roofle: false,         demandiq: false, highlight: true },
-  { feature: 'Lead pipeline (New→Contacted→Won)',         us: true,        roofle: false,         demandiq: false },
-  { feature: 'Insurance claim detection',                 us: true,        roofle: false,         demandiq: false, highlight: true },
-  { feature: 'Material selector (asphalt/metal/tile/flat)', us: true,      roofle: true,          demandiq: false },
-  { feature: 'Service area filtering',                    us: true,        roofle: false,         demandiq: false },
-  { feature: 'Floating tab widget (every page)',          us: true,        roofle: false,         demandiq: false, isPro: true },
-  { feature: 'AI lead intelligence brief',                us: true,        roofle: false,         demandiq: false, isAI: true, highlight: true },
-  { feature: 'AI follow-up email & SMS drafts',           us: true,        roofle: false,         demandiq: false, isAI: true, highlight: true },
-  { feature: 'Weekly AI intelligence report',             us: true,        roofle: false,         demandiq: false, isAI: true },
-  { feature: 'Email lead notifications',                  us: true,        roofle: true,          demandiq: true },
-  { feature: 'Webhook / Zapier integration',              us: true,        roofle: true,          demandiq: true, isPro: true },
-  { feature: 'Booking CTA on result screen',              us: true,        roofle: false,         demandiq: true, isPro: true },
-  { feature: 'No long-term contract',                     us: true,        roofle: false,         demandiq: false, highlight: true },
-  { feature: 'Live in under 5 minutes',                   us: true,        roofle: false,         demandiq: false },
+  { feature: 'Setup fee',                       us: '$0',   roofle: '$2,000', demandiq: '$1,500', highlight: true },
+  { feature: 'Lead scoring & qualification',    us: true,   roofle: false,    demandiq: false,    highlight: true },
+  { feature: 'Insurance claim detection',       us: true,   roofle: false,    demandiq: false,    highlight: true },
+  { feature: 'Service area filtering',          us: true,   roofle: false,    demandiq: false },
+  { feature: 'AI lead intelligence brief',      us: true,   roofle: false,    demandiq: false,    isAI: true, highlight: true },
+  { feature: 'AI follow-up email & SMS drafts', us: true,   roofle: false,    demandiq: false,    isAI: true, highlight: true },
+  { feature: 'Weekly AI intelligence report',   us: true,   roofle: false,    demandiq: false,    isAI: true },
+  { feature: 'No long-term contract',           us: true,   roofle: false,    demandiq: false,    highlight: true },
+  { feature: 'Live in under 5 minutes',         us: true,   roofle: false,    demandiq: false },
 ]
 
 function Cell({ value }: { value: boolean | string }) {
@@ -93,7 +85,7 @@ export function Comparison() {
         </div>
 
         <p className="text-[10px] text-stone-400 font-semibold uppercase tracking-widest text-right mb-10">
-          BetterRoofing Starter plan · All figures approximate
+          All figures approximate · Competitor pricing sourced from public websites
         </p>
 
         {/* Comparison table */}
@@ -136,11 +128,6 @@ export function Comparison() {
                   {row.isAI && (
                     <span className="text-[9px] font-black uppercase tracking-widest text-orange-600 border border-orange-300 bg-orange-100 px-1.5 py-0.5 leading-none">
                       AI
-                    </span>
-                  )}
-                  {row.isPro && (
-                    <span className="text-[9px] font-black uppercase tracking-widest text-stone-100 border border-stone-600 bg-stone-800 px-1.5 py-0.5 leading-none">
-                      Pro
                     </span>
                   )}
                 </div>

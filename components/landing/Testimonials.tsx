@@ -21,6 +21,15 @@ const testimonials = [
   },
   {
     quote:
+      "I used to spend half my week driving out to give estimates to people who were just price shopping. Now I check the score first. I only go out on 8s and 9s. My conversion on site visits has doubled.",
+    name: 'Tony B.',
+    company: 'Blue Ridge Roofing',
+    location: 'Charlotte, NC',
+    result: 'Site visit conversion doubled',
+    stars: 5,
+  },
+  {
+    quote:
       "I looked at Roofle. $350 a month plus a $2,000 setup fee — and they don't even write your follow-ups. BetterRoofing has the widget, lead scoring, and AI drafts for $97. I was live in 10 minutes. It's not close.",
     name: 'Dave K.',
     company: 'Keystone Roofing',
@@ -46,7 +55,7 @@ export function Testimonials() {
           </h2>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
           {testimonials.map((t) => (
             <div key={t.name} className="bg-white border-2 border-stone-200 flex flex-col shadow-sm hover:shadow-md transition-shadow">
               {/* Orange top stripe */}

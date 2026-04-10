@@ -17,9 +17,15 @@ export function FinalCta() {
 
           {/* Copy */}
           <div>
-            <div className="inline-flex items-center gap-2 bg-orange-500/20 border border-orange-500/40 px-4 py-2 mb-6">
-              <HardHat className="h-4 w-4 text-orange-400" />
-              <span className="text-orange-400 text-sm font-black uppercase tracking-widest">Every lead you miss is a job your competitor wins</span>
+            <div className="flex flex-col gap-2 mb-6">
+              <div className="inline-flex items-center gap-2 bg-orange-500/20 border border-orange-500/40 px-4 py-2 max-w-fit">
+                <HardHat className="h-4 w-4 text-orange-400" />
+                <span className="text-orange-400 text-sm font-black uppercase tracking-widest">Every lead you miss is a job your competitor wins</span>
+              </div>
+              <div className="inline-flex items-center gap-2 bg-stone-800 border border-stone-600 px-4 py-2 max-w-fit">
+                <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse flex-shrink-0" />
+                <span className="text-stone-300 text-sm font-semibold">Contractors in your market are capturing leads right now.</span>
+              </div>
             </div>
             <h2 className="font-barlow font-black text-5xl md:text-7xl text-white uppercase leading-none mb-4">
               Your Next 10 Leads<br />
@@ -28,7 +34,7 @@ export function FinalCta() {
               <span className="text-orange-400">Right Now.</span>
             </h2>
             <p className="text-stone-400 text-lg max-w-md">
-              Every night your site goes without this, a homeowner picks someone else.
+              Every night your site goes without this, a homeowner picks someone else — probably a contractor already running BetterRoofing in your area.
             </p>
           </div>
 
