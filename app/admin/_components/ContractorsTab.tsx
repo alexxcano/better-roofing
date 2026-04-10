@@ -1,6 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import { AlertTriangle, Mail } from 'lucide-react'
-import { SendReminderButton } from './AdminActions'
+import { AlertTriangle, Mail, ExternalLink } from 'lucide-react'
 
 const SETUP_FILTERS: Record<string, object> = {
   'no-onboarding':  { onboardingCompleted: false },
@@ -293,24 +292,25 @@ export async function ContractorsTab({
                 </div>
 
                 {/* Actions */}
-                <div className="px-3 py-3 flex flex-col gap-1.5 justify-center">
-                  {status === 'trialing' && (
-                    <>
-                      {!c.subscription?.trialReminder3dSentAt && (
-                        <SendReminderButton contractorId={c.id} type="3d" label="Email 3d" />
-                      )}
-                      {!c.subscription?.trialReminderExpirySentAt && (
-                        <SendReminderButton contractorId={c.id} type="expiry" label="Email Expiry" />
-                      )}
-                    </>
+                <div className="px-3 py-3 flex items-center gap-1.5 justify-start flex-wrap">
+                  {c.notificationEmail && (
+                    <a
+                      href={`mailto:${c.notificationEmail}`}
+                      title={c.notificationEmail}
+                      className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest border px-2 py-1 text-stone-600 border-stone-300 bg-white hover:bg-stone-50 transition-colors"
+                    >
+                      <Mail className="h-3 w-3" />
+                      Email
+                    </a>
                   )}
                   <a
                     href={`/embed/${c.id}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-[10px] font-black uppercase tracking-widest border px-2 py-1 text-stone-500 border-stone-200 bg-stone-50 hover:bg-stone-100 transition-colors text-center"
+                    className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest border px-2 py-1 text-stone-500 border-stone-200 bg-stone-50 hover:bg-stone-100 transition-colors"
                   >
-                    Widget ↗
+                    <ExternalLink className="h-3 w-3" />
+                    Widget
                   </a>
                 </div>
               </div>

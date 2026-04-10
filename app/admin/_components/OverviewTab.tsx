@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { PLANS } from '@/lib/stripe'
 import { Users, BarChart2, CreditCard, TrendingUp, CheckCircle } from 'lucide-react'
 import { MetricCard } from './MetricCard'
+import { AlertCards } from './AlertCards'
 
 const PLAN_PRICES: Record<string, number> = {
   STARTER: PLANS.STARTER.price,
@@ -76,6 +77,45 @@ export async function OverviewTab() {
 
   return (
     <div className="space-y-8">
+      {/* Growth */}
+      <div className="border border-stone-300 bg-white">
+        <div className="px-5 py-3 bg-stone-100 border-b border-stone-300 flex items-center justify-between">
+          <p className="text-xs font-black uppercase tracking-widest text-stone-600">Growth</p>
+          <div className="group relative inline-flex items-center cursor-default select-none">
+            <span className="text-[9px] font-black text-stone-400 border border-stone-300 bg-stone-50 px-1.5 py-0.5 group-hover:border-orange-300 group-hover:bg-orange-50 group-hover:text-orange-500 transition-all">
+              ?
+            </span>
+            <div className="absolute top-full right-0 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-20">
+              <div className="bg-stone-950 border-l-[3px] border-orange-500 shadow-2xl w-72">
+                <div className="px-4 pt-3 pb-1">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-orange-400 mb-2">How these are calculated</p>
+                </div>
+                <div className="px-4 pb-3 space-y-2">
+                  <div>
+                    <p className="text-[11px] font-black text-white uppercase tracking-wide">Leads (30d) trend</p>
+                    <p className="text-[11px] text-stone-400 font-semibold leading-snug">Compared to the previous 30-day window</p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-black text-white uppercase tracking-wide">Dormant contractors</p>
+                    <p className="text-[11px] text-stone-400 font-semibold leading-snug">Signed up &gt;30 days ago with zero leads in the last 30 days — churn risk</p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-black text-white uppercase tracking-wide">Signups (MTD)</p>
+                    <p className="text-[11px] text-stone-400 font-semibold leading-snug">Month-to-date vs same full calendar month last month</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-4 divide-x divide-stone-200">
+          <MetricCard label="Total Contractors" value={totalContractors} icon={Users} sub={`${dormantCount} dormant (30d)`} />
+          <MetricCard label="Leads (Last 30d)" value={leadsLast30} icon={BarChart2} trend={lead30dTrend} sub={`${leadsPrev30} prev 30d`} />
+          <MetricCard label="New Signups (MTD)" value={signupsThisMonth} icon={Users} trend={signupTrend} sub={`${signupsLastMonth} last month`} />
+          <MetricCard label="Onboarding Rate" value={`${onboardingRate}%`} icon={CheckCircle} sub={`${onboardingCompletedCount} of ${totalContractors} completed`} />
+        </div>
+      </div>
+
       {/* Revenue */}
       <div className="border border-stone-300 bg-white">
         <div className="px-5 py-3 bg-stone-100 border-b border-stone-300 flex items-center justify-between">
@@ -120,44 +160,8 @@ export async function OverviewTab() {
         </div>
       </div>
 
-      {/* Growth */}
-      <div className="border border-stone-300 bg-white">
-        <div className="px-5 py-3 bg-stone-100 border-b border-stone-300 flex items-center justify-between">
-          <p className="text-xs font-black uppercase tracking-widest text-stone-600">Growth</p>
-          <div className="group relative inline-flex items-center cursor-default select-none">
-            <span className="text-[9px] font-black text-stone-400 border border-stone-300 bg-stone-50 px-1.5 py-0.5 group-hover:border-orange-300 group-hover:bg-orange-50 group-hover:text-orange-500 transition-all">
-              ?
-            </span>
-            <div className="absolute top-full right-0 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-20">
-              <div className="bg-stone-950 border-l-[3px] border-orange-500 shadow-2xl w-72">
-                <div className="px-4 pt-3 pb-1">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-orange-400 mb-2">How these are calculated</p>
-                </div>
-                <div className="px-4 pb-3 space-y-2">
-                  <div>
-                    <p className="text-[11px] font-black text-white uppercase tracking-wide">Leads (30d) trend</p>
-                    <p className="text-[11px] text-stone-400 font-semibold leading-snug">Compared to the previous 30-day window</p>
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-black text-white uppercase tracking-wide">Dormant contractors</p>
-                    <p className="text-[11px] text-stone-400 font-semibold leading-snug">Signed up &gt;30 days ago with zero leads in the last 30 days — churn risk</p>
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-black text-white uppercase tracking-wide">Signups (MTD)</p>
-                    <p className="text-[11px] text-stone-400 font-semibold leading-snug">Month-to-date vs same full calendar month last month</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="grid grid-cols-4 divide-x divide-stone-200">
-          <MetricCard label="Total Contractors" value={totalContractors} icon={Users} sub={`${dormantCount} dormant (30d)`} />
-          <MetricCard label="Leads (Last 30d)" value={leadsLast30} icon={BarChart2} trend={lead30dTrend} sub={`${leadsPrev30} prev 30d`} />
-          <MetricCard label="New Signups (MTD)" value={signupsThisMonth} icon={Users} trend={signupTrend} sub={`${signupsLastMonth} last month`} />
-          <MetricCard label="Onboarding Rate" value={`${onboardingRate}%`} icon={CheckCircle} sub={`${onboardingCompletedCount} of ${totalContractors} completed`} />
-        </div>
-      </div>
+      {/* Trials expiring + Support tickets */}
+      <AlertCards />
 
       {/* Lead Velocity Chart */}
       <div className="border border-stone-300 bg-white">

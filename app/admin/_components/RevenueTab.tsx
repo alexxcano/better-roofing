@@ -1,8 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { PLANS } from '@/lib/stripe'
-import { CreditCard, Mail } from 'lucide-react'
-import { MetricCard } from './MetricCard'
-import { SendReminderButton } from './AdminActions'
+import { CreditCard, Mail, CheckCircle, XCircle, BarChart2 } from 'lucide-react'
 
 const PLAN_PRICES = { STARTER: PLANS.STARTER.price, PRO: PLANS.PRO.price }
 
@@ -22,7 +20,7 @@ export async function RevenueTab() {
     }),
     prisma.subscription.findMany({
       where: { status: 'active', currentPeriodEnd: { lte: thirtyDaysFromNow, gte: now } },
-      include: { contractor: { select: { companyName: true } } },
+      include: { contractor: { select: { companyName: true, notificationEmail: true } } },
       orderBy: { currentPeriodEnd: 'asc' },
     }),
     prisma.subscription.findMany({
@@ -31,9 +29,14 @@ export async function RevenueTab() {
         id: true,
         contractorId: true,
         trialEndsAt: true,
-        trialReminder3dSentAt: true,
-        trialReminderExpirySentAt: true,
-        contractor: { select: { companyName: true } },
+        contractor: {
+          select: {
+            companyName: true,
+            notificationEmail: true,
+            onboardingCompleted: true,
+            _count: { select: { leads: true } },
+          },
+        },
       },
       orderBy: { trialEndsAt: 'asc' },
     }),
@@ -137,22 +140,33 @@ export async function RevenueTab() {
                   (new Date(sub.currentPeriodEnd!).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
                 )
                 return (
-                  <div key={sub.id} className="px-5 py-3 flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-bold text-stone-900">{sub.contractor.companyName}</p>
+                  <div key={sub.id} className="px-5 py-3 flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-stone-900 truncate">{sub.contractor.companyName}</p>
                       <p className="text-[10px] text-stone-400 font-semibold mt-0.5 uppercase tracking-wide">
                         {sub.plan} · ${PLAN_PRICES[sub.plan as keyof typeof PLAN_PRICES]}/mo
                       </p>
                     </div>
-                    <span className={`text-xs font-black border px-2 py-0.5 ${
-                      daysUntil <= 3
-                        ? 'text-red-600 border-red-300 bg-red-50'
-                        : daysUntil <= 7
-                          ? 'text-orange-600 border-orange-300 bg-orange-50'
-                          : 'text-stone-600 border-stone-300 bg-stone-50'
-                    }`}>
-                      {daysUntil}d
-                    </span>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {sub.contractor.notificationEmail && (
+                        <a
+                          href={`mailto:${sub.contractor.notificationEmail}`}
+                          title={sub.contractor.notificationEmail}
+                          className="text-stone-400 hover:text-orange-500 transition-colors"
+                        >
+                          <Mail className="h-3.5 w-3.5" />
+                        </a>
+                      )}
+                      <span className={`text-xs font-black border px-2 py-0.5 ${
+                        daysUntil <= 3
+                          ? 'text-red-600 border-red-300 bg-red-50'
+                          : daysUntil <= 7
+                            ? 'text-orange-600 border-orange-300 bg-orange-50'
+                            : 'text-stone-600 border-stone-300 bg-stone-50'
+                      }`}>
+                        {daysUntil}d
+                      </span>
+                    </div>
                   </div>
                 )
               })}
@@ -177,14 +191,14 @@ export async function RevenueTab() {
                   ? Math.ceil((new Date(sub.trialEndsAt).getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
                   : null
                 const expired = daysLeft !== null && daysLeft <= 0
-                const sent3d = sub.trialReminder3dSentAt !== null
-                const sentExpiry = sub.trialReminderExpirySentAt !== null
+                const leadCount = sub.contractor._count.leads
+                const onboarded = sub.contractor.onboardingCompleted
 
                 return (
                   <div key={sub.id} className="px-5 py-3">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <p className="text-sm font-bold text-stone-900">{sub.contractor.companyName}</p>
-                      <span className={`text-[10px] font-black border px-2 py-0.5 ${
+                    <div className="flex items-center justify-between gap-3 mb-2">
+                      <p className="text-sm font-bold text-stone-900 truncate">{sub.contractor.companyName}</p>
+                      <span className={`text-[10px] font-black border px-2 py-0.5 flex-shrink-0 ${
                         expired
                           ? 'text-red-600 border-red-300 bg-red-50'
                           : daysLeft !== null && daysLeft <= 3
@@ -194,20 +208,38 @@ export async function RevenueTab() {
                         {expired ? 'Expired' : daysLeft !== null ? `${daysLeft}d left` : '—'}
                       </span>
                     </div>
-                    <div className="flex flex-wrap gap-1.5 items-center">
-                      {sent3d ? (
-                        <span className="text-[9px] font-black uppercase tracking-widest border px-1.5 py-0.5 text-green-700 border-green-200 bg-green-50">
-                          ✓ 3d sent
-                        </span>
-                      ) : (
-                        <SendReminderButton contractorId={sub.contractorId} type="3d" label="Send 3d" />
-                      )}
-                      {sentExpiry ? (
-                        <span className="text-[9px] font-black uppercase tracking-widest border px-1.5 py-0.5 text-green-700 border-green-200 bg-green-50">
-                          ✓ Expiry sent
-                        </span>
-                      ) : (
-                        <SendReminderButton contractorId={sub.contractorId} type="expiry" label="Send Expiry" />
+                    <div className="flex flex-wrap items-center gap-2">
+                      {/* Onboarding status */}
+                      <span className={`inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-widest border px-1.5 py-0.5 ${
+                        onboarded
+                          ? 'text-green-700 border-green-200 bg-green-50'
+                          : 'text-stone-400 border-stone-200 bg-stone-50'
+                      }`}>
+                        {onboarded
+                          ? <CheckCircle className="h-2.5 w-2.5" />
+                          : <XCircle className="h-2.5 w-2.5" />
+                        }
+                        Setup
+                      </span>
+                      {/* Lead count */}
+                      <span className={`inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-widest border px-1.5 py-0.5 ${
+                        leadCount > 0
+                          ? 'text-stone-700 border-stone-300 bg-stone-100'
+                          : 'text-stone-400 border-stone-200 bg-stone-50'
+                      }`}>
+                        <BarChart2 className="h-2.5 w-2.5" />
+                        {leadCount} lead{leadCount !== 1 ? 's' : ''}
+                      </span>
+                      {/* Email */}
+                      {sub.contractor.notificationEmail && (
+                        <a
+                          href={`mailto:${sub.contractor.notificationEmail}`}
+                          title={sub.contractor.notificationEmail}
+                          className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-widest border px-1.5 py-0.5 text-stone-600 border-stone-300 bg-white hover:bg-stone-50 transition-colors"
+                        >
+                          <Mail className="h-2.5 w-2.5" />
+                          Email
+                        </a>
                       )}
                     </div>
                   </div>

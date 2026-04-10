@@ -3,7 +3,6 @@ import { LeadsTab } from './_components/LeadsTab'
 import { ContractorsTab } from './_components/ContractorsTab'
 import { RevenueTab } from './_components/RevenueTab'
 import { ErrorsTab } from './_components/ErrorsTab'
-import { AlertCards } from './_components/AlertCards'
 
 export default async function AdminPage({
   searchParams,
@@ -15,12 +14,7 @@ export default async function AdminPage({
 
   return (
     <div className="space-y-5">
-      {tab === 'overview' && (
-        <>
-          <AlertCards />
-          <OverviewTab />
-        </>
-      )}
+      {tab === 'overview' && <OverviewTab />}
       {tab === 'leads' && <LeadsTab />}
       {tab === 'contractors' && (
         <ContractorsTab search={params.search?.trim() || ''} status={params.status || ''} setup={params.setup || ''} />

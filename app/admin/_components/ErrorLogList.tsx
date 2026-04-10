@@ -3,8 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  AlertCircle, AlertTriangle, CheckCircle, EyeOff,
-  RotateCcw, Trash2, ChevronDown,
+  CheckCircle, EyeOff, RotateCcw, Trash2, ChevronDown, ChevronUp,
 } from 'lucide-react'
 
 type ErrorLog = {
@@ -22,10 +21,32 @@ type ErrorLog = {
 
 type Filter = 'open' | 'resolved' | 'ignored' | 'all'
 
+function extractHeadline(message: string): string {
+  if (message.length <= 160) return message
+  const match = message.match(/\.\s+([A-Z][^.]{10,}\.?\s*)$/)
+  if (match && match[1].length < 200) return match[1].trim()
+  return message.slice(0, 160).trimEnd() + '…'
+}
+
+function relativeTime(date: Date): string {
+  const now = Date.now()
+  const diff = now - new Date(date).getTime()
+  const mins  = Math.floor(diff / 60_000)
+  const hours = Math.floor(diff / 3_600_000)
+  const days  = Math.floor(diff / 86_400_000)
+  if (mins  < 1)  return 'just now'
+  if (mins  < 60) return `${mins}m ago`
+  if (hours < 24) return `${hours}h ago`
+  if (days  < 7)  return `${days}d ago`
+  return new Date(date).toLocaleDateString()
+}
+
 export function ErrorLogList({ errors }: { errors: ErrorLog[] }) {
   const router = useRouter()
-  const [filter, setFilter] = useState<Filter>('open')
-  const [loadingId, setLoadingId] = useState<string | null>(null)
+  const [filter, setFilter]             = useState<Filter>('open')
+  const [loadingId, setLoadingId]       = useState<string | null>(null)
+  const [expandedMsg, setExpandedMsg]   = useState<Set<string>>(new Set())
+  const [expandedStack, setExpandedStack] = useState<Set<string>>(new Set())
 
   const counts = {
     open:     errors.filter((e) => e.status === 'open').length,
@@ -35,6 +56,22 @@ export function ErrorLogList({ errors }: { errors: ErrorLog[] }) {
   }
 
   const filtered = filter === 'all' ? errors : errors.filter((e) => e.status === filter)
+
+  function toggleMsg(id: string) {
+    setExpandedMsg((prev) => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  function toggleStack(id: string) {
+    setExpandedStack((prev) => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
 
   async function updateStatus(id: string, status: string) {
     setLoadingId(id)
@@ -63,7 +100,7 @@ export function ErrorLogList({ errors }: { errors: ErrorLog[] }) {
 
   return (
     <div className="border border-stone-300 bg-white">
-      {/* Header with filter tabs */}
+      {/* Header */}
       <div className="px-5 py-3 bg-stone-100 border-b border-stone-300 flex items-center justify-between gap-4">
         <p className="text-xs font-black uppercase tracking-widest text-stone-600">Error Log</p>
         <div className="flex items-center gap-1">
@@ -79,7 +116,7 @@ export function ErrorLogList({ errors }: { errors: ErrorLog[] }) {
             >
               {label}
               {counts[id] > 0 && (
-                <span className="ml-1 opacity-70">({counts[id]})</span>
+                <span className="ml-1 opacity-60">({counts[id]})</span>
               )}
             </button>
           ))}
@@ -93,82 +130,130 @@ export function ErrorLogList({ errors }: { errors: ErrorLog[] }) {
       ) : (
         <div className="divide-y divide-stone-100">
           {filtered.map((log) => {
-            const isError = log.level === 'error'
+            const isError        = log.level === 'error'
+            const isOpen         = log.status === 'open'
+            const msgExpanded    = expandedMsg.has(log.id)
+            const stackExpanded  = expandedStack.has(log.id)
+            const isLongMessage  = log.message.length > 160
+            const headline       = extractHeadline(log.message)
+            const isLoading      = loadingId === log.id
+
             const meta = log.meta
               ? (() => { try { return JSON.parse(log.meta) } catch { return null } })()
               : null
 
+            // Left border color signals severity at a glance
+            const borderAccent = !isOpen
+              ? 'border-l-stone-200'
+              : isError
+                ? 'border-l-red-500'
+                : 'border-l-orange-400'
+
             return (
               <div
                 key={log.id}
-                className={`px-5 py-4 transition-opacity ${log.status !== 'open' ? 'opacity-60' : ''}`}
+                className={`pl-4 pr-5 py-4 border-l-[3px] ${borderAccent} ${!isOpen ? 'opacity-55' : ''}`}
               >
-                <div className="flex items-start justify-between gap-4 mb-1.5">
-                  <div className="flex items-center gap-2 min-w-0 flex-wrap">
-                    {isError
-                      ? <AlertCircle className="h-3.5 w-3.5 text-red-500 flex-shrink-0" />
-                      : <AlertTriangle className="h-3.5 w-3.5 text-orange-400 flex-shrink-0" />
-                    }
-                    <span className={`text-[10px] font-black uppercase tracking-widest border px-1.5 py-0.5 flex-shrink-0 ${
+                {/* Row 1: context + level + timestamp + actions */}
+                <div className="flex items-start justify-between gap-3 mb-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                    {/* Severity — primary signal */}
+                    <span className={`text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5 border flex-shrink-0 ${
                       isError
                         ? 'text-red-600 border-red-200 bg-red-50'
                         : 'text-orange-600 border-orange-200 bg-orange-50'
                     }`}>
                       {log.level}
                     </span>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-stone-500 border border-stone-200 bg-stone-50 px-1.5 py-0.5 flex-shrink-0">
+                    {/* Context — secondary */}
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-500 flex-shrink-0">
                       {log.context}
                     </span>
+                    {/* Status badge — only when not open */}
                     {log.status === 'resolved' && (
                       <span className="text-[10px] font-black uppercase tracking-widest text-green-700 border border-green-200 bg-green-50 px-1.5 py-0.5 flex-shrink-0">
                         resolved
                       </span>
                     )}
                     {log.status === 'ignored' && (
-                      <span className="text-[10px] font-black uppercase tracking-widest text-stone-500 border border-stone-200 bg-stone-100 px-1.5 py-0.5 flex-shrink-0">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-stone-400 border border-stone-200 bg-stone-100 px-1.5 py-0.5 flex-shrink-0">
                         ignored
                       </span>
                     )}
                   </div>
+
+                  {/* Timestamp + inline actions */}
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <p className="text-[10px] text-stone-400 font-semibold">
-                      {new Date(log.createdAt).toLocaleString()}
-                    </p>
-                    <ActionDropdown
+                    <span
+                      className="text-[10px] text-stone-400 font-semibold tabular-nums"
+                      title={new Date(log.createdAt).toLocaleString()}
+                    >
+                      {relativeTime(log.createdAt)}
+                    </span>
+                    <InlineActions
                       id={log.id}
                       status={log.status}
-                      loading={loadingId === log.id}
+                      loading={isLoading}
                       onUpdateStatus={updateStatus}
                       onDelete={deleteLog}
                     />
                   </div>
                 </div>
 
-                <p className="text-sm font-semibold text-stone-800 mb-1">{log.message}</p>
+                {/* Row 2: message headline */}
+                <div className="mb-1.5">
+                  {msgExpanded ? (
+                    <pre className="text-xs text-stone-600 bg-stone-50 border border-stone-200 p-3 overflow-x-auto leading-relaxed whitespace-pre-wrap font-mono mb-1">
+                      {log.message}
+                    </pre>
+                  ) : (
+                    <p className="text-sm font-semibold text-stone-800 leading-snug">
+                      {headline}
+                    </p>
+                  )}
+                  {isLongMessage && (
+                    <button
+                      onClick={() => toggleMsg(log.id)}
+                      className="mt-0.5 flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-stone-400 hover:text-stone-600 transition-colors"
+                    >
+                      {msgExpanded
+                        ? <><ChevronUp className="h-3 w-3" /> Collapse</>
+                        : <><ChevronDown className="h-3 w-3" /> Full message</>
+                      }
+                    </button>
+                  )}
+                </div>
 
-                {meta && (
-                  <div className="flex flex-wrap gap-3 mb-1.5">
-                    {Object.entries(meta).map(([k, v]) => (
-                      <span key={k} className="text-[10px] font-semibold text-stone-500">
-                        <span className="font-black text-stone-400 uppercase">{k}:</span> {String(v)}
-                      </span>
+                {/* Row 3: metadata chips — only if present */}
+                {(meta || log.userId) && (
+                  <div className="flex flex-wrap gap-1.5 mb-1.5">
+                    {log.userId && (
+                      <MetaChip label="user" value={log.userId} />
+                    )}
+                    {meta && Object.entries(meta).map(([k, v]) => (
+                      <MetaChip key={k} label={k} value={String(v)} />
                     ))}
                   </div>
                 )}
 
-                {log.userId && (
-                  <p className="text-[10px] text-stone-400 font-semibold">user: {log.userId}</p>
-                )}
-
+                {/* Row 4: stack trace */}
                 {log.stack && (
-                  <details className="mt-2">
-                    <summary className="text-[10px] font-black uppercase tracking-widest text-stone-400 cursor-pointer hover:text-stone-600">
-                      Stack trace
-                    </summary>
-                    <pre className="mt-1.5 text-[10px] text-stone-500 bg-stone-50 border border-stone-200 p-3 overflow-x-auto leading-relaxed whitespace-pre-wrap">
-                      {log.stack}
-                    </pre>
-                  </details>
+                  <div className="mt-1">
+                    <button
+                      onClick={() => toggleStack(log.id)}
+                      className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-stone-400 hover:text-stone-600 transition-colors"
+                    >
+                      {stackExpanded
+                        ? <><ChevronUp className="h-3 w-3" /> Hide stack</>
+                        : <><ChevronDown className="h-3 w-3" /> Stack trace</>
+                      }
+                    </button>
+                    {stackExpanded && (
+                      <pre className="mt-1.5 text-[10px] text-stone-500 bg-stone-50 border border-stone-200 p-3 overflow-x-auto leading-relaxed whitespace-pre-wrap font-mono">
+                        {log.stack}
+                      </pre>
+                    )}
+                  </div>
                 )}
               </div>
             )
@@ -179,7 +264,16 @@ export function ErrorLogList({ errors }: { errors: ErrorLog[] }) {
   )
 }
 
-function ActionDropdown({
+function MetaChip({ label, value }: { label: string; value: string }) {
+  return (
+    <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-stone-50 border border-stone-200 px-2 py-0.5 text-stone-600 max-w-[240px] truncate">
+      <span className="font-black text-stone-400 uppercase flex-shrink-0">{label}</span>
+      <span className="truncate">{value}</span>
+    </span>
+  )
+}
+
+function InlineActions({
   id, status, loading, onUpdateStatus, onDelete,
 }: {
   id: string
@@ -188,61 +282,65 @@ function ActionDropdown({
   onUpdateStatus: (id: string, status: string) => void
   onDelete: (id: string) => void
 }) {
-  const [open, setOpen] = useState(false)
+  if (loading) {
+    return <span className="text-[10px] text-stone-400 font-black tracking-widest">···</span>
+  }
 
   return (
-    <div className="relative">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        disabled={loading}
-        className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-stone-500 border border-stone-300 px-2 py-1 hover:border-stone-500 hover:text-stone-700 transition-colors disabled:opacity-40"
-      >
-        {loading ? '···' : 'Actions'}
-        <ChevronDown className="h-3 w-3" />
-      </button>
-
-      {open && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-1 z-20 bg-white border border-stone-300 shadow-[2px_2px_0px_0px_#1c1917] w-44">
-            {status !== 'resolved' && (
-              <button
-                onClick={() => { setOpen(false); onUpdateStatus(id, 'resolved') }}
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[10px] font-black uppercase tracking-widest text-green-700 hover:bg-green-50 transition-colors"
-              >
-                <CheckCircle className="h-3.5 w-3.5 flex-shrink-0" />
-                Mark Resolved
-              </button>
-            )}
-            {status !== 'ignored' && (
-              <button
-                onClick={() => { setOpen(false); onUpdateStatus(id, 'ignored') }}
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[10px] font-black uppercase tracking-widest text-stone-600 hover:bg-stone-50 transition-colors"
-              >
-                <EyeOff className="h-3.5 w-3.5 flex-shrink-0" />
-                Ignore
-              </button>
-            )}
-            {status !== 'open' && (
-              <button
-                onClick={() => { setOpen(false); onUpdateStatus(id, 'open') }}
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[10px] font-black uppercase tracking-widest text-stone-600 hover:bg-stone-50 transition-colors"
-              >
-                <RotateCcw className="h-3.5 w-3.5 flex-shrink-0" />
-                Reopen
-              </button>
-            )}
-            <div className="border-t border-stone-200" />
-            <button
-              onClick={() => { setOpen(false); onDelete(id) }}
-              className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[10px] font-black uppercase tracking-widest text-red-600 hover:bg-red-50 transition-colors"
-            >
-              <Trash2 className="h-3.5 w-3.5 flex-shrink-0" />
-              Delete
-            </button>
-          </div>
-        </>
+    <div className="flex items-center gap-0.5">
+      {status !== 'resolved' && (
+        <ActionBtn
+          onClick={() => onUpdateStatus(id, 'resolved')}
+          title="Mark resolved"
+          className="text-green-600 hover:bg-green-50"
+        >
+          <CheckCircle className="h-3.5 w-3.5" />
+        </ActionBtn>
       )}
+      {status !== 'ignored' && (
+        <ActionBtn
+          onClick={() => onUpdateStatus(id, 'ignored')}
+          title="Ignore"
+          className="text-stone-400 hover:bg-stone-100"
+        >
+          <EyeOff className="h-3.5 w-3.5" />
+        </ActionBtn>
+      )}
+      {status !== 'open' && (
+        <ActionBtn
+          onClick={() => onUpdateStatus(id, 'open')}
+          title="Reopen"
+          className="text-stone-500 hover:bg-stone-100"
+        >
+          <RotateCcw className="h-3.5 w-3.5" />
+        </ActionBtn>
+      )}
+      <ActionBtn
+        onClick={() => onDelete(id)}
+        title="Delete"
+        className="text-red-400 hover:bg-red-50"
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </ActionBtn>
     </div>
+  )
+}
+
+function ActionBtn({
+  onClick, title, className, children,
+}: {
+  onClick: () => void
+  title: string
+  className: string
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      onClick={onClick}
+      title={title}
+      className={`p-1 rounded transition-colors ${className}`}
+    >
+      {children}
+    </button>
   )
 }
